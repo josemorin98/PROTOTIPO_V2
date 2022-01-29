@@ -1,0 +1,18 @@
+# Ignore the node_modules directory
+node_modules/
+
+# Ignore Logs
+logs
+*.log
+*.csv
+
+# Ignore the build directory
+# /name_folder
+
+# The file containing environment variables 
+.env
+
+# Ignore IDE specific files
+.idea/
+.vscode/
+*.sw*

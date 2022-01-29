@@ -1,0 +1,105 @@
+version: '3'
+services:
+  lb_generic_1:
+    image: jmorin98/lb_generic
+    hostname: lb_generic_1
+    environment:
+
+      NODE_ID: lb_generic_1
+      ALGORITHM: RR
+      IP: '127.0.0.1'
+      PUBILC_PORT: 5454
+      DOCKER_PORT: 5000
+      MODE: DOCKER 
+    # build:
+    #   context: ./lb_generic
+    #   dockerfile: ./Dockerfile
+    volumes:
+      - /home/usuario/Escritorio/PROTOTIPO_V2/Volumen/:/app/data/
+    networks:
+      - proto_net
+    ports:
+      - 5454:5000
+  
+  worker_1:
+    image: jmorin98/workers
+    hostname: worker_1
+    environment:
+      NODE_ID: worker_1
+      IP: '127.0.0.1'
+      PUBILC_PORT: 5000
+      DOCKER_PORT: 5000
+      MODE: DOCKER
+
+      NODE_ID_MANAGER: lb_generic_1
+      IP_MANAGER: '127.0.0.1'
+      PUBILC_PORT_MANAGER: 5454
+      DOCKER_PORT_MANAGER: 5000
+      
+      NODE_ID_SINK: lb_generic_2
+      IP_SINK: '127.0.0.1'
+      PUBILC_PORT_SINK: 5455
+      DOCKER_PORT_SINK: 5000
+
+    # build: 
+    #   context: ./workerGeneric
+    #   dockerfile: ./Dockerfile
+    volumes:
+      - /home/usuario/Escritorio/PROTOTIPO_V2/Volumen/:/app/data/
+    networks:
+      - proto_net
+    ports:
+      - 5001:5000
+
+  worker_2:
+    image: jmorin98/workers
+    hostname: worker_2
+    environment:
+      NODE_ID: worker_2
+      IP: '127.0.0.1'
+      PUBILC_PORT: 5001
+      DOCKER_PORT: 5000
+      MODE: DOCKER
+
+      NODE_ID_MANAGER: lb_generic_1
+      IP_MANAGER: '127.0.0.1'
+      PUBILC_PORT_MANAGER: 5454
+      DOCKER_PORT_MANAGER: 5000
+      
+      NODE_ID_SINK: lb_generic_2
+      IP_SINK: '127.0.0.1'
+      PUBILC_PORT_SINK: 5455
+      DOCKER_PORT_SINK: 5000
+
+    # build: 
+    #   context: ./workerGeneric
+    #   dockerfile: ./Dockerfile
+    volumes:
+      - /home/usuario/Escritorio/PROTOTIPO_V2/Volumen/:/app/data/
+    networks:
+      - proto_net
+    ports:
+      - 5002:5000
+
+  lb_generic_2:
+    image: jmorin98/lb_generic
+    hostname: lb_generic_2
+    environment:
+      NODE_ID: lb_generic_2
+      ALGORITHM: RR
+      IP: '127.0.0.1'
+      PUBILC_PORT: 5455
+      DOCKER_PORT: 5000
+      MODE: DOCKER 
+    # build:
+    #   context: ./lb_generic
+    #   dockerfile: ./Dockerfile
+    volumes:
+      - /home/usuario/Escritorio/PROTOTIPO_V2/Volumen/:/app/data/
+    networks:
+      - proto_net
+    ports:
+      - 5455:5000
+
+networks:
+  proto_net:

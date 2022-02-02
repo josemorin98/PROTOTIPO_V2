@@ -2,7 +2,7 @@ version: '3'
 services:
 
   lb_generic_esp_0:
-    image: jmorin98/lb_generic
+    image: jmorin98/loadbalancer
     hostname: lb_generic_esp_1
     environment:
 
@@ -13,18 +13,21 @@ services:
       DOCKER_PORT: 5000
       MODE: DOCKER 
       PRESENTATION: 0
+      SOURCE_PATH: /data/Procesos
+      LOGS_PATH: /logs
     # build:
     #   context: ./lb_generic
     #   dockerfile: ./Dockerfile
     volumes:
       - /home/usuario/Escritorio/PROTOTIPO_V2/Volumen/:/app/data/
+      - /home/usuario/Escritorio/PROTOTIPO_V2/Volumen/logs:/app/data/logs
     networks:
       - proto_net
     ports:
       - 5454:5000
-  
+
   lb_generic_tem_0:
-    image: jmorin98/lb_generic
+    image: jmorin98/loadbalancer
     hostname: lb_generic_tem_0
     environment:
 
@@ -35,6 +38,8 @@ services:
       DOCKER_PORT: 5000
       MODE: DOCKER
       PRESENTATION: 1
+      SOURCE_PATH: /data/Procesos
+      LOGS_PATH: /logs
 
       NODE_ID_MANAGER: lb_generic_esp_0
       IP_MANAGER: '127.0.0.1'
@@ -45,13 +50,14 @@ services:
     #   dockerfile: ./Dockerfile
     volumes:
       - /home/usuario/Escritorio/PROTOTIPO_V2/Volumen/:/app/data/
+      - /home/usuario/Escritorio/PROTOTIPO_V2/Volumen/logs:/app/data/logs
     networks:
       - proto_net
     ports:
       - 5455:5000
     
   lb_generic_tem_1:
-    image: jmorin98/lb_generic
+    image: jmorin98/loadbalancer
     hostname: lb_generic_tem_1
     environment:
 
@@ -62,6 +68,8 @@ services:
       DOCKER_PORT: 5000
       MODE: DOCKER
       PRESENTATION: 1
+      SOURCE_PATH: /data/Procesos
+      LOGS_PATH: /logs
 
       NODE_ID_MANAGER: lb_generic_esp_0
       IP_MANAGER: '127.0.0.1'
@@ -72,6 +80,7 @@ services:
     #   dockerfile: ./Dockerfile
     volumes:
       - /home/usuario/Escritorio/PROTOTIPO_V2/Volumen/:/app/data/
+      - /home/usuario/Escritorio/PROTOTIPO_V2/Volumen/logs:/app/data/logs
     networks:
       - proto_net
     ports:

@@ -1,3 +1,5 @@
+from urllib3 import Retry
+
 
 class NodeWorker():
     def __init__(self, *args, **kwargs):
@@ -11,15 +13,9 @@ class NodeWorker():
                                             self.ip,
                                             self.publicPort,
                                             self.dockerPort)
-    
-    def getURL(self,mode='DOCKER',endPoint='workers'):
+
+    def getURL(self,mode='DOCKER'):
         if (mode=='DOCKER'):
-            return 'http://{}:{}/{}'.format(self.nodeId,self.dockerPort,endPoint)
+            return 'http://{}:{}/workers'.format(self.nodeId,self.dockerPort)
         else:
-            return 'http://{}:{}/{}'.format(self.ip,self.publicPort,endPoint)
-    
-    def toJSON(self):
-        return  {"nodeId"    : self.nodeId,
-                "ip"         : self.ip,
-                "publicPort" : self.publicPort,
-                "dockerPort" : self.dockerPort}
+            return 'http://{}:{}/workers'.format(self.ip,self.publicPort)

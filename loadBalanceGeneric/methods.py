@@ -1,5 +1,6 @@
+from datetime import datetime
 import random
-import numpy as np
+import pandas as pd
 
 def initWorkresArray(workers):
     pet_in = []
@@ -85,6 +86,7 @@ def toBalanceData(initWorkers,balanceData,algorithm):
         balancedData = PseudoRandomV2(cargas=initWorkers, traza=balanceData)
     return balancedData
 
+# Funcuncion que nos ayudara a sacar los valores unicos de las fuentes de acuerdo a una columna/variable
 def readColumnsToBalance(fuentes,variable_to_balance):
     array_to_balance = list()
     pos = 0
@@ -94,4 +96,42 @@ def readColumnsToBalance(fuentes,variable_to_balance):
         pos = pos + 1
         array_to_balance.append(array)
     return array
-    
+
+# Temporal------------
+# Funcion que nos ayuda a reducir el codigo para converit un datetime to string en el formato estandar
+def str_date(date):
+    return date.strftime("%Y-%m-%d %H:%M:%S")
+
+# Funcion que nos genera los rangos de las fechas
+def generateRangos(inicio, fin, tipo, n):
+    rangos = list()
+    # division por anos
+    if(tipo=='anio'):
+        rangos = pd.date_range(start=str_date(inicio), end=str_date(fin), freq=str(n)+'Y', closed='left').to_pydatetime()
+    # division por meses
+    elif(tipo=='mes'):
+        rangos = pd.date_range(start=str_date(inicio), end=str_date(fin), freq=str(n)+'M', closed='left').to_pydatetime()
+    # division por dias
+    elif(tipo=='dia'):
+        rangos = pd.date_range(start=str_date(inicio), end=str_date(fin), freq=str(n)+'D', closed='left').to_pydatetime()
+    return rangos
+
+# Funcion que nos ayudara aseparar las fechas como el usurario indique
+def defColumnDate(fuentes,variables_to_date,inicio,fin):
+    inicio =  datetime.strptime(inicio,"%Y-%m-%d %H:%M:%S")  # fecha de inicio (datetime)
+    fin = datetime.strptime(fin, "%Y-%m-%d %H:%M:%S") # fecha de fin (datetime)
+    # app.logger.info(len(variables_to_date[0]))
+    for x in range (len(fuentes)):
+        rangos = generateRangos(inicio=inicio,fin=fin,tipo=variables_to_date[x][1],n=variables_to_date[x][2])
+        # app.logger.info(rangos)
+    return rangos
+
+def generateStringDate(tipo,inicio,fin):
+    if(tipo=='anio'):
+        return inicio.strftime("%Y") + ' - ' + fin.strftime("%Y")
+    # division por meses
+    elif(tipo=='mes'):
+        return inicio.strftime("%B/%Y") + ' - ' + fin.strftime("%B/%Y")
+    # division por dias
+    elif(tipo=='dia'):
+        return inicio.strftime("%d/%m/%Y") + ' - ' + fin.strftime("%d/%m/%Y")

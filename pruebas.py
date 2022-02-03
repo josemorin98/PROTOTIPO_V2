@@ -60,8 +60,8 @@ data_file = {
     "PARAMS":[
         {
             "K":[5,6,7],
-            "type_cluster":["Kmeans","GM"],
-            "variables":vars_clus
+            "TYPES":["Kmeans","GM"],
+            "VARS":[['A','B','C']]
         }
            ],
     "PIPELINE":["/balance/temporal"]
@@ -69,7 +69,8 @@ data_file = {
 
 print('sending')
 
-url = 'http://192.168.1.73:5454/balance/temporal' # Negocio
+# url = 'http://192.168.1.73:5000/balance/temporal' # Negocio
+url = 'http://192.168.1.73:5000/analytics/clustering'
 # url = 'http://192.168.0.16:4001/get_datos'
 # url = 'http://localhost:5000/get_data'
 req = requests.post(url,data=json.dumps(data_file), headers=headers)

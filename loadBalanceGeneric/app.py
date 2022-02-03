@@ -17,10 +17,11 @@ app.config['PROPAGATE_EXCEPTIONS'] = True
 # rutas de acceso
 logPath = os.environ.get("LOGS_PATH",'/logs')
 sourcePath = os.environ.get("SOURCE_PATH","/data/Procesos")
+nodeId = os.environ.get("NODE_ID",'')
 
 # CONFIG LOGS ERROR INFO
 # Format to logs
-FORMAT = '%(created).0f %(levelname)s %(message)s'
+FORMAT = '%(created).0f %(levelname)s {} %(message)s'.format(nodeId)
 # object formatter
 formatter = logging.Formatter(FORMAT)
 console = logging.StreamHandler()
@@ -28,8 +29,8 @@ console.setLevel(logging.INFO)
 # config format
 console.setFormatter(fmt=formatter)
 # config del logging
-logs_info_file = './data{}/{}_info.log'.format(logPath,os.environ.get('NODE_ID',''))
-logs_error_file = './data{}/{}_error.log'.format(logPath,os.environ.get('NODE_ID',''))
+logs_info_file = './data{}/{}_info.log'.format(logPath,nodeId)
+logs_error_file = './data{}/{}_error.log'.format(logPath,nodeId)
 # ------- Logger Info
 loggerInfo = logging.getLogger('LOGS_INFO')
 hdlr_1 = logging.FileHandler(logs_info_file)
@@ -49,7 +50,7 @@ loggerError.addHandler(console)
 # Cambiar a variables de entorno
 state = { 'nodes': [],
             'algorithm': os.environ.get('ALGORITHM','RR'),
-            'nodeId': os.environ.get('NODE_ID',''),
+            'nodeId': nodeId,
             'ip': os.environ.get('IP','127.0.0.1'),
             'publicPort': os.environ.get('PUBLIC_PORT',5000),
             'dockerPort': os.environ.get('DOCKER_PORT',5000),

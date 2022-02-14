@@ -1,6 +1,5 @@
 import logging
 import time
-from unicodedata import name
 from flask import Flask, request
 from flask import jsonify
 import json
@@ -30,8 +29,8 @@ console.setLevel(logging.INFO)
 # config format
 console.setFormatter(fmt=formatter)
 # config del logging
-logs_info_file = '.{}/{}_info.log'.format(logPath,nodeId)
-logs_error_file = '.{}/{}_error.log'.format(logPath,nodeId)
+logs_info_file = './data{}/{}_info.log'.format(logPath,nodeId)
+logs_error_file = './data{}/{}_error.log'.format(logPath,nodeId)
 # ------- Logger Info
 loggerInfo = logging.getLogger('LOGS_INFO')
 hdlr_1 = logging.FileHandler(logs_info_file)
@@ -68,7 +67,7 @@ nodeInfoSink = {'nodeId': os.environ.get('NODE_ID_SINK',''),
             'dockerPort': os.environ.get('DOCKER_PORT_SINK',5000)}
 nodeSink = NodeWorker(**nodeInfoSink)
 
-
+send = mtd.trueOrFalse(os.environ.get('SEND','False'))
 # GET ALL NODES WORKERS
 @app.route('/orchestrators', methods = ['GET'])
 def show_worker():
@@ -112,72 +111,46 @@ def presentation():
             
     return "OK"
 
-# -------------------------------- Carga de Trabajo -----------------------------------
-def clusterExec(kValues,clusterTypes,sourceData,clusterVariables,nameSource,nodeId):
-    # app.logger.error(k_)
-    data_p =sourceData[clusterVariables]
-    for type in clusterTypes:
-        for k in kValues:
-            # KMEANS
-            if (type=="Kmeans"):
-                # llamado del clustering
-                k_labels = mtd.K_means(k=k,
-                                        data=data_p,
-                                        loggerError=loggerError,
-                                        loggerInfo=loggerInfo)
-                clusterName="Kmeans"
-            elif (type=="GM"):
-                k_labels = mtd.MixtureModel(k=k,
-                                        data=data_p,
-                                        loggerError=loggerError,
-                                        loggerInfo=loggerInfo)
-                clusterName="GaussianMixture"
-            else:
-                k_labels = mtd.K_means(k=k,
-                                        data=data_p,
-                                        loggerError=loggerError,
-                                        loggerInfo=loggerInfo)
-                clusterName="Kmeans"
-            # save resultaas
-            data_p['clase']=k_labels
-            
-            nameSourceNew =  "{}_{}_K{}_{}.csv".format(nodeId,nameSource,k,type)
-            #"Clus_"+name+"_DataClust_K="+str(k)+"_"+str(cluster)+".csv"
-            data_p.to_csv("{}{}".format(sourcePath,nameSourceNew), index = False)
-            # data_clima.to_csv(source_folder+'/'+name_fuente)
+def regressionExec(regressionData, normalize, regressionVariables, nameSource, nodeID):
+    data_p = regressionData[regressionVariables]
+    if (normalize!=False):
+        # normalizamos los datos
+        data_p = mtd.normalize(data_p,regressionVariables)
+    # genereamos la version de prueba y test
+    X=data_p[regressionData[0]]
+    y=data_p[regressionData[1]]
+    regressionLabels = mtd.regressionLineal(X=X,y=y,loggerInfo=loggerInfo,loggerError=loggerError)
+    regressionData['regressionLineal'] = regressionLabels
+    nameSourceNew =  "{}_{}_RL.csv".format(nodeId,nameSource)
+    data_p.to_csv("{}{}".format(sourcePath,nameSourceNew), index = False)
     return nameSourceNew
- 
 
 # Clustering process
-@app.route('/analytics/clustering', methods = ['POST'])
-def clustering():
+@app.route('/analytics/regression', methods = ['POST'])
+def regression():
     global nodeId
     # recibimos los parametros
     message = request.get_json()
-    paramsClustering = message["PARAMS"][0]
+    paramsRegression = message["PARAMS"][0]
     del message["PARAMS"][0]
-    # valores de K para los clustering
-    kValues = paramsClustering["K"]
     # fuentes
     sources = message["SOURCES"]
-    # cluster tipos
-    clusterTypes = paramsClustering["TYPES"]
     # arreglo de variables
-    clusterVariables = paramsClustering["VARS"]
+    regressionVariables = paramsRegression["VARS"]
     # lista de nuevas fuentes
     sourcesNew = list()
-
+    normalizeVal = mtd.trueOrFalse(paramsRegression['NORMALIZE'])
     for src in range(len(sources)):
         # leemos el archivo a procesar
-        clusterData = mtd.read_CSV('.{}/{}'.format(sourcePath,sources[src]))
+        regressionData = mtd.read_CSV('.{}/{}'.format(sourcePath,sources[src]))
         # generamos el hilo que se ejecutara para realizar el clusering
         with ThreadPoolExecutor(max_workers=os.cpu_count()) as executor:
         # app.logger.info('executoooooor')
-            ext = executor.submit(clusterExec,kValues,clusterTypes,clusterData,clusterVariables[src],sources[src],nodeId)
+            ext = executor.submit(regressionExec, regressionData, normalizeVal, regressionVariables[src],sources[src],nodeId)
             sourcesNew.append(ext.result())
 
     return "OK"
 
 if __name__ == '__main__':
-    # presentation()
+    presentation()
     app.run(host= '0.0.0.0',port=state['dockerPort'],debug=True,use_reloader=False)

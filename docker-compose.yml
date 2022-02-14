@@ -13,78 +13,53 @@ services:
       DOCKER_PORT: 5000
       MODE: DOCKER 
       PRESENTATION: 0
-      SOURCE_PATH: /data/Procesos
+      SOURCE_PATH: /data
       LOGS_PATH: /logs
     # build:
     #   context: ./lb_generic
     #   dockerfile: ./Dockerfile
     volumes:
-      - /home/usuario/Escritorio/PROTOTIPO_V2/Volumen/:/app/data/
-      - /home/usuario/Escritorio/PROTOTIPO_V2/Volumen/logs:/app/data/logs
+      - /test/prototipoTest/:/app/data/
+      - /test/prototipoTest/logs:/app/data/logs
     networks:
       - proto_net
     ports:
       - 5454:5000
 
-  lb_generic_tem_0:
-    image: jmorin98/loadbalancer
-    hostname: lb_generic_tem_0
+  regression_1:
+    image: jmorin98/regression
+    hostname: regression_1
     environment:
-
-      NODE_ID: lb_generic_tem_0
-      ALGORITHM: RR
+      NODE_ID: regression_1
       IP: '127.0.0.1'
-      PUBILC_PORT: 5455
+      PUBILC_PORT: 5001
       DOCKER_PORT: 5000
       MODE: DOCKER
-      PRESENTATION: 1
-      SOURCE_PATH: /data/Procesos
+      SEND: 0
+      SOURCE_PATH: /data
       LOGS_PATH: /logs
 
-      NODE_ID_MANAGER: lb_generic_esp_0
+      NODE_ID_MANAGER: lb_generic_esp_1
       IP_MANAGER: '127.0.0.1'
       PUBILC_PORT_MANAGER: 5454
       DOCKER_PORT_MANAGER: 5000
-    # build:
-    #   context: ./lb_generic
+      
+      NODE_ID_SINK: lb_generic_2
+      IP_SINK: '127.0.0.1'
+      PUBILC_PORT_SINK: 5455
+      DOCKER_PORT_SINK: 5000
+
+    # build: 
+    #   context: ./workerGeneric
     #   dockerfile: ./Dockerfile
     volumes:
-      - /home/usuario/Escritorio/PROTOTIPO_V2/Volumen/:/app/data/
-      - /home/usuario/Escritorio/PROTOTIPO_V2/Volumen/logs:/app/data/logs
+      - /test/prototipoTest/:/app/data/
+      - /test/prototipoTest/logs/:/app/data/logs
     networks:
       - proto_net
     ports:
-      - 5455:5000
-    
-  lb_generic_tem_1:
-    image: jmorin98/loadbalancer
-    hostname: lb_generic_tem_1
-    environment:
+      - 5001:5000
 
-      NODE_ID: lb_generic_tem_1
-      ALGORITHM: RR
-      IP: '127.0.0.1'
-      PUBILC_PORT: 5456
-      DOCKER_PORT: 5000
-      MODE: DOCKER
-      PRESENTATION: 1
-      SOURCE_PATH: /data/Procesos
-      LOGS_PATH: /logs
-
-      NODE_ID_MANAGER: lb_generic_esp_0
-      IP_MANAGER: '127.0.0.1'
-      PUBILC_PORT_MANAGER: 5454
-      DOCKER_PORT_MANAGER: 5000
-    # build:
-    #   context: ./lb_generic
-    #   dockerfile: ./Dockerfile
-    volumes:
-      - /home/usuario/Escritorio/PROTOTIPO_V2/Volumen/:/app/data/
-      - /home/usuario/Escritorio/PROTOTIPO_V2/Volumen/logs:/app/data/logs
-    networks:
-      - proto_net
-    ports:
-      - 5456:5000
 
 networks:
   proto_net:  

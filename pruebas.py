@@ -51,26 +51,26 @@ vars_clus = ['porc_pob_mas15_analfab','porc_pob_6_14_sin_asistir_esc',
 
 
 data_file = {
-    "SOURCES":["test.csv"],
+    "SOURCES":["TasaD_pre.csv"],
     "START":"2000-12-01 00:00:00",
     "END":"2000-12-05 00:00:00",
     "ESPATIAL":[["Espacial"]],
     "TEMPORAL":[["Temporal","dia",2]], #col,range,cant
-    "BALANCE":["TEMPORAL"],
+    "BALANCE":["ESPATIAL"],
     "PARAMS":[
         {
             "K":[5,6,7],
-            "TYPES":["Kmeans","GM"],
-            "VARS":[['A','B','C']]
+            "NORMALIZE":'True',
+            "VARS":[['causasuic_l','TasaD']]
         }
            ],
-    "PIPELINE":["/balance/temporal"]
+    "PIPELINE":["analytics/regression"]
  }
 
 print('sending')
 
-# url = 'http://192.168.1.73:5000/balance/temporal' # Negocio
-url = 'http://192.168.1.73:5000/analytics/clustering'
+url = 'http://192.168.1.73:5454/balance/espatial' # Negocio
+# url = 'http://192.168.1.73:5000/analytics/clustering'
 # url = 'http://192.168.0.16:4001/get_datos'
 # url = 'http://localhost:5000/get_data'
 req = requests.post(url,data=json.dumps(data_file), headers=headers)

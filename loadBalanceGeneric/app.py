@@ -1,5 +1,7 @@
 from datetime import datetime
 import json
+from platform import node
+import threading
 from flask import Flask, request
 from flask import jsonify
 from node import NodeWorker
@@ -16,7 +18,7 @@ app.config['PROPAGATE_EXCEPTIONS'] = True
 
 # rutas de acceso
 logPath = os.environ.get("LOGS_PATH",'/logs')
-sourcePath = os.environ.get("SOURCE_PATH","/data/Procesos")
+sourcePath = os.environ.get("SOURCE_PATH","/data")
 nodeId = os.environ.get("NODE_ID",'')
 
 # CONFIG LOGS ERROR INFO
@@ -104,6 +106,7 @@ def send_balance():
 def balanceEspatial():
     # global ip
     global state
+    nodes = state['nodes']
     # Recibe los datos
     message = request.get_json()
     # recibimos el tipo de balanceo
@@ -140,19 +143,22 @@ def balanceEspatial():
     del jsonSend["BALANCE"][0]
     # app.logger.error(send_json['balanceo'])
     modeToSend = state["mode"]
-    endPoint = jsonSend["PIPELINE"]
+    endPoint = jsonSend["PIPELINE"][0]
     del jsonSend["PIPELINE"][0]
     # Balance mediante fuentes
     if (balanceType == "SOURCES"):
         threads = list() 
         for x in range(workersCant):
             jsonSend["SOURCES"] = balanceData[x]
-            url = workersNodes[x].getURL(mode=modeToSend)
-            loggerError.error('URL {}'.format(url))
+            url = workersNodes[x].getURL(mode=modeToSend,endPoint=endPoint)
+            loggerError.error('URL {} {}'.format(url,len(balanceData)))
+            initService = time.time()
+            jsonSend['TIME_S'] = initService
+            t = threading.Thread(target=jsonSend, args=(url,jsonSend))
             # url = 'http://'+nodes[x]+':'+str(port)+'/get_data'
             # t = threading.Thread(target=send_msj, args=(url,send_json))
-            # threads.append(t)
-            # t.start()
+            threads.append(t)
+            t.start()
     elif(balanceType == "ESPATIAL"):
         # app.logger.info(balanceo)
         # actualizamos las fuentes para cada trabajador
@@ -176,15 +182,20 @@ def balanceEspatial():
             jsonSend["SOURCES"] = sourcesNewList
             url = workersNodes[worker].getURL(mode=modeToSend,
                                             endPoint=endPoint)
-            loggerError.error('URL {}'.format(url))
-            # url = 'http://'+nodes[x]+':'+str(port)+'/get_data'
-            # t = threading.Thread(target=send_msj, args=(url,send_json))
-            # threads.append(t)
-            # t.start()
-    # for th in threads:
-    #     th.join()
+            # loggerError.error('URL {}'.format(url))
+            initService = time.time()
+            jsonSend['TIME_S'] = initService
+            t = threading.Thread(target=jsonSend, args=(url,jsonSend))
+            threads.append(t)
+            t.start()
+    for th in threads:
+        th.join()
     timeEndBalance = time.time()
+
+
     loggerInfo.info('BALANCE_ESPATIAL {} {}'.format(balanceType, (timeEndBalance-timeStartBalance)))
+    # send
+
     return jsonify({'DATA':'Termino'})
 
 @app.route('/balance/temporal',methods = ['POST'])

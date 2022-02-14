@@ -16,7 +16,7 @@ def normalize(p, vars):
     scaler = MinMaxScaler()
     scaled_df = scaler.fit_transform(p)
     scaled_df = pd.DataFrame(scaled_df, columns=vars)
-    return 
+    return scaled_df
  
 def trueOrFalse(val):
     trueList = ['True','true','1','TRUE','t','T']
@@ -32,29 +32,30 @@ def regressionLineal(X,y,loggerInfo,loggerError):
     try:
         startTime = time.time()
         reg = LinearRegression()
-        reg.fit(X=X.reshape(-1,1), y=y)
+        reg.fit(X=X, y=y)
         predicts = reg.predict(X)
         endTime = time.time()
         R2 = r2_score(y, predicts)
         error = mean_squared_error(y, predicts)
         loggerInfo.info('REGRESSION_DONE LINEAL {} {}'.format((endTime-startTime), R2, error))
         return predicts
-    except e as Exception:
+    except Exception:
         loggerError.error("REGRESSION_FAILED LINEAL")
         return np.zeros(X.shape[0])
 
-def plotRegression(X,y,xLabel,yLabel,predicts,nameSource,loggerInfo,loggerError):
+def plotRegression(X,y,xLabel,yLabel,predicts,sourcePath,nameSource,loggerInfo,loggerError):
     try:
         startTime = time.time()
         plt.scatter(X, y, color="blue")
-        plt.plot(X, predicts, color  ="red", linewidth=3)
+        plt.plot(X, predicts, color ="red", linewidth=3)
         plt.title(nameSource)
         plt.ylabel(yLabel)
         plt.xlabel(xLabel)
+        plt.savefig(".{}/{}_RL.png".format(sourcePath,nameSource))
         endTime = time.time()
         loggerInfo.info('REGRESSION_DONE_PLOT LINEAL {}'.format((endTime-startTime)))
         return predicts
-    except e as Exception:
+    except Exception:
         loggerError.error("REGRESSION_FAILED_PLOT LINEAL")
         return np.zeros(X.shape[0])
 # Regressiones

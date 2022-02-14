@@ -1,3 +1,4 @@
+from asyncio import log
 import logging
 import time
 from flask import Flask, request
@@ -117,12 +118,18 @@ def regressionExec(regressionData, normalize, regressionVariables, nameSource, n
         # normalizamos los datos
         data_p = mtd.normalize(data_p,regressionVariables)
     # genereamos la version de prueba y test
-    X=data_p[regressionData[0]]
-    y=data_p[regressionData[1]]
+    # loggerError.error('{} - {}'.format(regressionVariables[0],regressionVariables[1]))
+    X=data_p[regressionVariables[0]].values.reshape(-1,1)
+    y=data_p[regressionVariables[1]].values.reshape(-1,1)
     regressionLabels = mtd.regressionLineal(X=X,y=y,loggerInfo=loggerInfo,loggerError=loggerError)
     regressionData['regressionLineal'] = regressionLabels
-    nameSourceNew =  "{}_{}_RL.csv".format(nodeId,nameSource)
-    data_p.to_csv("{}{}".format(sourcePath,nameSourceNew), index = False)
+    # ploting
+    mtd.plotRegression(X=X, y=y, xLabel=regressionVariables[0],sourcePath=sourcePath,
+                yLabel=regressionVariables[1],predicts=regressionLabels,
+                nameSource='{}_RL_plot'.format(nameSource),loggerInfo=loggerInfo,
+                loggerError=loggerError)
+    nameSourceNew =  "{}_{}".format(nodeId,nameSource)
+    regressionData.to_csv(".{}/{}".format(sourcePath,nameSourceNew), index = False)
     return nameSourceNew
 
 # Clustering process

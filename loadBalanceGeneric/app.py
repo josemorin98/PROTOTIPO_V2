@@ -101,6 +101,10 @@ def send_balance():
         app.logger.debug('SEND_MSG {} '.format(node.nodeId))
     return jsonify({'response':"OK"})
 
+def enviar_datos(url,jsonSend):
+    headers = {'PRIVATE-TOKEN': '<your_access_token>', 'Content-Type':'application/json'}
+    requests.post(url, data=json.dumps(jsonSend), headers=headers)
+
 # balanceo
 @app.route('/balance/espatial',methods = ['POST'])
 def balanceEspatial():
@@ -121,7 +125,7 @@ def balanceEspatial():
     elif(balanceType == "ESPATIAL"):
         sources = message["SOURCES"] # Seleccionamos las fuentes
         variablesToBalance = message["ESPATIAL"] # Selecionamos las columnas de balanceo de cada archivo
-        toBalanceData = mtd.readColumnsToBalance(fuentes=sources, variable_to_balance=variablesToBalance) # Extramos los valores unicos de cada fuente
+        toBalanceData = mtd.readColumnsToBalance(sourcePath=sourcePath,fuentes=sources, variable_to_balance=variablesToBalance) # Extramos los valores unicos de cada fuente
     else:
         toBalanceData = message["SOURCES"] # lista de datos a balancear (son las fuentes)
         balanceType = "SOURCES" # Tipo de balanceo a realizar
@@ -146,18 +150,20 @@ def balanceEspatial():
     endPoint = jsonSend["PIPELINE"][0]
     del jsonSend["PIPELINE"][0]
     # Balance mediante fuentes
+    threadsList = list()
     if (balanceType == "SOURCES"):
         threads = list() 
         for x in range(workersCant):
             jsonSend["SOURCES"] = balanceData[x]
             url = workersNodes[x].getURL(mode=modeToSend,endPoint=endPoint)
-            loggerError.error('URL {} {}'.format(url,len(balanceData)))
+            # loggerError.error('URL {} {}'.format(url,len(balanceData)))
+            timeEndBalance = time.time()
             initService = time.time()
             jsonSend['TIME_S'] = initService
-            t = threading.Thread(target=jsonSend, args=(url,jsonSend))
+            t = threading.Thread(target=enviar_datos, args=(url,jsonSend))
             # url = 'http://'+nodes[x]+':'+str(port)+'/get_data'
             # t = threading.Thread(target=send_msj, args=(url,send_json))
-            threads.append(t)
+            threadsList.append(t)
             t.start()
     elif(balanceType == "ESPATIAL"):
         # app.logger.info(balanceo)
@@ -165,7 +171,7 @@ def balanceEspatial():
         sourcesNew = jsonSend["SOURCES"]
         # mandamos a cada trabajador lo que le corresponde
         # actualizamos los balanceos
-        threadsList = list() 
+        
         for worker in range(workersCant):
             sourcesNewList = list()
             # leemos los archivos
@@ -183,16 +189,14 @@ def balanceEspatial():
             url = workersNodes[worker].getURL(mode=modeToSend,
                                             endPoint=endPoint)
             # loggerError.error('URL {}'.format(url))
+            timeEndBalance = time.time()
             initService = time.time()
             jsonSend['TIME_S'] = initService
-            t = threading.Thread(target=jsonSend, args=(url,jsonSend))
-            threads.append(t)
+            t = threading.Thread(target=enviar_datos, args=(url,jsonSend))
+            threadsList.append(t)
             t.start()
-    for th in threads:
+    for th in threadsList:
         th.join()
-    timeEndBalance = time.time()
-
-
     loggerInfo.info('BALANCE_ESPATIAL {} {}'.format(balanceType, (timeEndBalance-timeStartBalance)))
     # send
 

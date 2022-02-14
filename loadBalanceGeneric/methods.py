@@ -87,11 +87,11 @@ def toBalanceData(initWorkers,balanceData,algorithm):
     return balancedData
 
 # Funcuncion que nos ayudara a sacar los valores unicos de las fuentes de acuerdo a una columna/variable
-def readColumnsToBalance(fuentes,variable_to_balance):
+def readColumnsToBalance(sourcePath,fuentes,variable_to_balance):
     array_to_balance = list()
     pos = 0
     for x in fuentes:
-        df = pd.read_csv('./data/Procesos/'+str(x))
+        df = pd.read_csv('.{}/{}'.format(sourcePath,x))
         array = df[variable_to_balance[pos][0]].unique()
         pos = pos + 1
         array_to_balance.append(array)

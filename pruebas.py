@@ -54,12 +54,11 @@ data_file = {
     "SOURCES":["TasaD_pre.csv"],
     "START":"2000-12-01 00:00:00",
     "END":"2000-12-05 00:00:00",
-    "ESPATIAL":[["Espacial"]],
+    "ESPATIAL":[["nombre entidad"]],
     "TEMPORAL":[["Temporal","dia",2]], #col,range,cant
     "BALANCE":["ESPATIAL"],
     "PARAMS":[
         {
-            "K":[5,6,7],
             "NORMALIZE":'True',
             "VARS":[['causasuic_l','TasaD']]
         }

@@ -337,4 +337,4 @@ def presentation():
 
 if __name__ == '__main__':
     presentation()
-    app.run(host= '0.0.0.0',port=state['dockerPort'],debug=True,use_reloader=False)
+    app.run(host= '0.0.0.0',port=state['dockerPort'],debug=False,use_reloader=False)

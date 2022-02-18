@@ -12,4 +12,8 @@ cd regression
 docker build -t jmorin98/regression:latest .
 docker push jmorin98/regression:latest
 cd ..
+cd correlation
+docker build -t jmorin98/correlation:latest .
+docker push jmorin98/correlation:latest
+cd ..
 docker-compose up --build

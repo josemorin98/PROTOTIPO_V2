@@ -5,6 +5,7 @@ RUN pip install flask
 RUN pip install requests
 RUN pip install pandas
 RUN pip install sklearn
+RUN pip install seaborn
 RUN pip install matplotlib
 
 COPY ./ /app

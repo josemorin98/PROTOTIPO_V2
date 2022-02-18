@@ -1,3 +1,4 @@
+from asyncio import log
 import logging
 import time
 from flask import Flask, request
@@ -7,7 +8,6 @@ from node import NodeWorker
 import requests
 import os
 import methods as mtd
-from sklearn import metrics
 from concurrent.futures import ThreadPoolExecutor
 
 app = Flask(__name__)
@@ -68,7 +68,7 @@ nodeInfoSink = {'nodeId': os.environ.get('NODE_ID_SINK',''),
             'dockerPort': os.environ.get('DOCKER_PORT_SINK',5000)}
 nodeSink = NodeWorker(**nodeInfoSink)
 
-
+send = mtd.trueOrFalse(os.environ.get('SEND','False'))
 # GET ALL NODES WORKERS
 @app.route('/orchestrators', methods = ['GET'])
 def show_worker():
@@ -112,89 +112,56 @@ def presentation():
             
     return "OK"
 
-# -------------------------------- Carga de Trabajo -----------------------------------
-def clusterExec(kValues,clusterTypes,sourceData,clusterVariables,nameSource,nodeId,silhouette):
-    # app.logger.error(k_)
-    data_p =sourceData[clusterVariables]
-    for type in clusterTypes:
-        scoreSil = list()
-        for k in kValues:
-            # KMEANS
-            if (type=="Kmeans"):
-                # llamado del clustering
-                k_labels = mtd.K_means(k=k,
-                                        data=data_p,
-                                        loggerError=loggerError,
-                                        loggerInfo=loggerInfo)
-                clusterName="Kmeans"
-            elif (type=="GM"):
-                k_labels = mtd.MixtureModel(k=k,
-                                        data=data_p,
-                                        loggerError=loggerError,
-                                        loggerInfo=loggerInfo)
-                clusterName="GaussianMixture"
-            else:
-                k_labels = mtd.K_means(k=k,
-                                        data=data_p,
-                                        loggerError=loggerError,
-                                        loggerInfo=loggerInfo)
-                clusterName="Kmeans"
-            # save resultaas
-            data_p['clase']=k_labels
-            
-            nameSourceNew =  "{}_{}_K{}_{}.csv".format(nodeId,nameSource[:-4],k,type)
-            
-            #"Clus_"+name+"_DataClust_K="+str(k)+"_"+str(cluster)+".csv"
-            pathSave = ".{}/{}".format(sourcePath,nameSourceNew)
-            data_p.to_csv(pathSave, index = False)
-            # data_clima.to_csv(source_folder+'/'+name_fuente)
-            if (silhouette == True):
-                score = metrics.silhouette_score(data_p, k_labels, metric="euclidean")
-                loggerError.error('score {}'.format(score))
-                scoreSil.append( ('K{}'.format(k),score) )
-        if (silhouette == True):
-            mtd.plotingSilhouete(scoreSil=scoreSil,algo=clusterName,
-                                    sourcePath=sourcePath,
-                                    loggerError=loggerError,
-                                    loggerInfo=loggerInfo,nodeId=nodeId)
-    return nameSourceNew
- 
+def correlationExec(regressionData, normalize, regressionVariables, nameSource, nodeID):
+    data_p = regressionData[regressionVariables]
+    if (normalize!=False):
+        # normalizamos los datos
+        data_p = mtd.normalize(data_p,regressionVariables)
+    # genereamos la version de prueba y test
+    # loggerError.error('{} - {}'.format(regressionVariables[0],regressionVariables[1]))
+    corr = data_p.corr()
+    mtd.correlationPlot(corr,sourcePath=sourcePath,nameSource='{}'.format(nameSource),loggerInfo=loggerInfo,
+                loggerError=loggerError)
+    
+
+# Draw the heatmap with the mask and correct aspect rati
+    # regressionLabels = mtd.regressionLineal(X=X,y=y,loggerInfo=loggerInfo,loggerError=loggerError)
+    # regressionData['regressionLineal'] = regressionLabels
+    # ploting
+    # mtd.plotRegression(X=X, y=y, xLabel=regressionVariables[0],sourcePath=sourcePath,
+                # yLabel=regressionVariables[1],predicts=regressionLabels,
+                # nameSource='{}_RL_plot'.format(nameSource),loggerInfo=loggerInfo,
+                # loggerError=loggerError)
+    # nameSourceNew =  "{}_{}".format(nodeId,nameSource)
+    # regressionData.to_csv(".{}/{}".format(sourcePath,nameSourceNew), index = False)
+    return 'OK'
 
 # Clustering process
-@app.route('/analytics/clustering', methods = ['POST'])
-def clustering():
+@app.route('/analytics/correlation', methods = ['POST'])
+def regression():
     global nodeId
     # recibimos los parametros
     message = request.get_json()
-    paramsClustering = message["PARAMS"][0]
+    paramsCorrelation = message["PARAMS"][0]
     del message["PARAMS"][0]
-    # valores de K para los clustering
-    kValues = paramsClustering["K"]
     # fuentes
     sources = message["SOURCES"]
-    # cluster tipos
-    clusterTypes = paramsClustering["TYPES"]
     # arreglo de variables
-    clusterVariables = paramsClustering["VARS"]
+    correlationVariables = paramsCorrelation["VARS"]
     # lista de nuevas fuentes
-    if ("SILHOUETTE" in paramsClustering):
-        silhouette = mtd.trueOrFalse(val=paramsClustering["SILHOUETTE"])
-    else:
-        silhouette = False
-    # loggerError.error('SILHOUETTE {}'.format(silhouette))
     sourcesNew = list()
-
+    normalizeVal = mtd.trueOrFalse(paramsCorrelation['NORMALIZE'])
     for src in range(len(sources)):
         # leemos el archivo a procesar
-        clusterData = mtd.read_CSV('.{}/{}'.format(sourcePath,sources[src]))
+        correlationData = mtd.read_CSV('.{}/{}'.format(sourcePath,sources[src]))
         # generamos el hilo que se ejecutara para realizar el clusering
         with ThreadPoolExecutor(max_workers=os.cpu_count()) as executor:
         # app.logger.info('executoooooor')
-            ext = executor.submit(clusterExec,kValues,clusterTypes,clusterData,clusterVariables[src],sources[src],nodeId,silhouette)
+            ext = executor.submit(correlationExec, correlationData, normalizeVal, correlationVariables[src],sources[src],nodeId)
             sourcesNew.append(ext.result())
 
     return "OK"
 
 if __name__ == '__main__':
     presentation()
-    app.run(host= '0.0.0.0',port=state['dockerPort'],debug=False,use_reloader=False)
+    app.run(host= '0.0.0.0',port=state['dockerPort'],debug=True,use_reloader=False)

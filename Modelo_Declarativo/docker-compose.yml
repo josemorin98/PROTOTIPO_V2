@@ -1,0 +1,111 @@
+version: '3'
+services:
+  Fuentes_Mn_0:
+    image: jmorin98/fuentes_mn:latest
+    hostname: Fuentes_Mn_0
+    environment:
+      NODES: Balanceo_esp_Mn_0
+      NODE_PORT: '5000'
+    volumes:
+    - /home/usuario/Escritorio/PROTOTIPO/Volumen/:/app/data/
+    networks:
+    - prot_net
+    ports:
+    - 1024:5000
+  Balanceo_esp_Mn_0:
+    image: jmorin98/balanceo_e_mn:latest
+    hostname: Balanceo_esp_Mn_0
+    environment:
+      NODES: Balanceo_tem_Mn_0,Balanceo_tem_Mn_1
+      WORKERS: '2'
+      NODE_PORT: '5000'
+    volumes:
+    - /home/usuario/Escritorio/PROTOTIPO/Volumen/:/app/data/
+    networks:
+    - prot_net
+    ports:
+    - 1025:5000
+  Balanceo_tem_Mn_0:
+    image: jmorin98/balanceo_t_mn:latest
+    hostname: Balanceo_tem_Mn_0
+    environment:
+      NODE_PORT: '5000'
+      WORKERS: '2'
+      NODES: Clustering_mn_0,Clustering_mn_1
+    volumes:
+    - /home/usuario/Escritorio/PROTOTIPO/Volumen/:/app/data/
+    networks:
+    - prot_net
+    ports:
+    - 1026:5000
+  Balanceo_tem_Mn_1:
+    image: jmorin98/balanceo_t_mn:latest
+    hostname: Balanceo_tem_Mn_1
+    environment:
+      NODE_PORT: '5000'
+      WORKERS: '2'
+      NODES: Clustering_mn_2,Clustering_mn_3
+    volumes:
+    - /home/usuario/Escritorio/PROTOTIPO/Volumen/:/app/data/
+    networks:
+    - prot_net
+    ports:
+    - 1027:5000
+  Clustering_mn_0:
+    image: jmorin98/clustering_mn
+    hostname: Clustering_mn_0
+    environment:
+      NODES: Balanceo_tem_Mn_0,Balanceo_tem_Mn_1
+      NODE_PORT: '5000'
+      WORKERS: '2'
+      SEND: 'FALSE'
+    volumes:
+    - /home/usuario/Escritorio/PROTOTIPO/Volumen/:/app/data/
+    networks:
+    - prot_net
+    ports:
+    - 1028:5000
+  Clustering_mn_1:
+    image: jmorin98/clustering_mn
+    hostname: Clustering_mn_1
+    environment:
+      NODES: Balanceo_tem_Mn_2,Balanceo_tem_Mn_3
+      NODE_PORT: '5000'
+      WORKERS: '2'
+      SEND: 'FALSE'
+    volumes:
+    - /home/usuario/Escritorio/PROTOTIPO/Volumen/:/app/data/
+    networks:
+    - prot_net
+    ports:
+    - 1029:5000
+  Clustering_mn_2:
+    image: jmorin98/clustering_mn
+    hostname: Clustering_mn_2
+    environment:
+      NODES: Balanceo_tem_Mn_4,Balanceo_tem_Mn_5
+      NODE_PORT: '5000'
+      WORKERS: '2'
+      SEND: 'FALSE'
+    volumes:
+    - /home/usuario/Escritorio/PROTOTIPO/Volumen/:/app/data/
+    networks:
+    - prot_net
+    ports:
+    - 1030:5000
+  Clustering_mn_3:
+    image: jmorin98/clustering_mn
+    hostname: Clustering_mn_3
+    environment:
+      NODES: Balanceo_tem_Mn_6,Balanceo_tem_Mn_7
+      NODE_PORT: '5000'
+      WORKERS: '2'
+      SEND: 'FALSE'
+    volumes:
+    - /home/usuario/Escritorio/PROTOTIPO/Volumen/:/app/data/
+    networks:
+    - prot_net
+    ports:
+    - 1031:5000
+networks:
+  prot_net: null

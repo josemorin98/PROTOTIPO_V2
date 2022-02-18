@@ -1,0 +1,18 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"path": "../../PROTOTIPO_V2"
+		},
+		{
+			"path": "../../../../../test"
+		}
+	],
+	"settings": {
+		"DockerRun.DisableDockerrc": true,
+		"DockerRun.DisableAutoGenerateConfig": true,
+		"git.ignoreLimitWarning": true
+	}
+}

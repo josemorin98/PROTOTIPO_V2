@@ -54,16 +54,28 @@ data_file = {
     "SOURCES":["TasaD_pre.csv"],
     "START":"2000-12-01 00:00:00",
     "END":"2000-12-05 00:00:00",
-    "ESPATIAL":[["nombre entidad"]],
+    "ESPATIAL":[["causasuic"]],
     "TEMPORAL":[["Temporal","dia",2]], #col,range,cant
     "BALANCE":["ESPATIAL"],
     "PARAMS":[
         {
+            "K":[3,4,5],
+            "TYPES":['KMEANS'],
+            "VARS":[['anio_ocur','count','Poblacion total',
+            'Poblacion masculina','Poblacion femenina',
+            'Total de viviendas habitadas','CVE_ENT','CVE_MUN',
+            'lat','lon','TasaD','causasuic_l']],
+            "SILHOUETTE":1
+        },
+        {
             "NORMALIZE":'True',
-            "VARS":[['causasuic_l','TasaD']]
+            "VARS":[['anio_ocur','count','Poblacion total',
+            'Poblacion masculina','Poblacion femenina',
+            'Total de viviendas habitadas','CVE_ENT','CVE_MUN',
+            'lat','lon','TasaD','causasuic_l']]
         }
            ],
-    "PIPELINE":["analytics/regression"]
+    "PIPELINE":["analytics/clustering"]
  }
 
 print('sending')

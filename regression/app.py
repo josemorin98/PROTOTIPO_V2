@@ -19,6 +19,7 @@ app.config['PROPAGATE_EXCEPTIONS'] = True
 logPath = os.environ.get("LOGS_PATH",'/logs')
 sourcePath = os.environ.get("SOURCE_PATH","")
 nodeId = os.environ.get("NODE_ID",'prueba')
+presentationValue = mtd.trueOrFalse(os.environ.get('PRESENTATION',"1"))
 
 # CONFIG LOGS ERROR INFO
 # Format to logs
@@ -82,41 +83,13 @@ def show_worker():
 
 
 
-@app.before_first_request
-def presentation():
-    global state
-    global nodeManager
-    # send info to manager node
-    
-    infoSend = {'nodeId': state['nodeId'],
-                'ip': state['ip'],
-                'publicPort': state['publicPort'],
-                'dockerPort': state['publicPort']}
-    # send info to manager
-    headers = {'PRIVATE-TOKEN': '<your_access_token>', 'Content-Type':'application/json'}
-    # Node Manager
-    while True:
-        try:
-            # app.logger.info(nodeManager.getURL(mode=state['mode']))
-            # Node Manager
-            startTime = time.time()
-            url = nodeManager.getURL(mode=state['mode'])
-            # app.logger.info(url)
-            requests.post(url, data=json.dumps(infoSend), headers=headers)
-            endTime = time.time()
-            loggerInfo.info('CONNECTION_SUCCESSFULLY PRESENTATION_SEND {} {}'.format(nodeManager.nodeId, (endTime-startTime)))
-            break
-        except requests.ConnectionError:
-            loggerError.error('CONNECTION_REFUSED PRESENTATION_SEND {} 0'.format(nodeManager.nodeId))
-            time.sleep(5)
-            
-    return "OK"
 
 def regressionExec(regressionData, normalize, regressionVariables, nameSource, nodeID):
-    data_p = regressionData[regressionVariables]
+    data_p = regressionData[regressionVariables[:-1]]
+    nameLabels = regressionData[regressionVariables[2]].unique()
     if (normalize!=False):
         # normalizamos los datos
-        data_p = mtd.normalize(data_p,regressionVariables)
+        data_p = mtd.normalize(data_p,regressionVariables[:-1])
     # genereamos la version de prueba y test
     # loggerError.error('{} - {}'.format(regressionVariables[0],regressionVariables[1]))
     X=data_p[regressionVariables[0]].values.reshape(-1,1)
@@ -124,10 +97,12 @@ def regressionExec(regressionData, normalize, regressionVariables, nameSource, n
     regressionLabels = mtd.regressionLineal(X=X,y=y,loggerInfo=loggerInfo,loggerError=loggerError)
     regressionData['regressionLineal'] = regressionLabels
     # ploting
-    mtd.plotRegression(X=X, y=y, xLabel=regressionVariables[0],sourcePath=sourcePath,
+    X_=regressionData[regressionVariables[0]].values.reshape(-1,1)
+    y_=regressionData[regressionVariables[1]].values.reshape(-1,1)
+    mtd.plotRegression(X=X_, y=y_, xLabel=regressionVariables[0],sourcePath=sourcePath,
                 yLabel=regressionVariables[1],predicts=regressionLabels,
                 nameSource='{}_RL_plot'.format(nameSource),loggerInfo=loggerInfo,
-                loggerError=loggerError)
+                loggerError=loggerError, namePlot = nameLabels)
     nameSourceNew =  "{}_{}".format(nodeId,nameSource)
     regressionData.to_csv(".{}/{}".format(sourcePath,nameSourceNew), index = False)
     return nameSourceNew
@@ -157,6 +132,42 @@ def regression():
             sourcesNew.append(ext.result())
 
     return "OK"
+
+
+@app.before_first_request
+def presentation():
+    global state
+    global nodeManager
+    global presentationValue
+    # send info to manager node
+    
+    infoSend = {'nodeId': state['nodeId'],
+                'ip': state['ip'],
+                'publicPort': state['publicPort'],
+                'dockerPort': state['dockerPort']}
+    # send info to manager
+    headers = {'PRIVATE-TOKEN': '<your_access_token>', 'Content-Type':'application/json'}
+    # Node Manager
+    while True:
+        try:
+            # app.logger.info(nodeManager.getURL(mode=state['mode']))
+            # Node Manager
+            if (presentationValue == False):
+                break
+            startTime = time.time()
+            url = nodeManager.getURL(mode=state['mode'])
+            # app.logger.info(url)
+            requests.post(url, data=json.dumps(infoSend), headers=headers)
+            endTime = time.time()
+            loggerInfo.info('CONNECTION_SUCCESSFULLY PRESENTATION_SEND {} {}'.format(nodeManager.nodeId, (endTime-startTime)))
+            presentationValue = False
+            break
+        except requests.ConnectionError:
+            loggerError.error('CONNECTION_REFUSED PRESENTATION_SEND {} 0'.format(nodeManager.nodeId))
+            time.sleep(5)
+            
+    return "OK"
+
 
 if __name__ == '__main__':
     presentation()

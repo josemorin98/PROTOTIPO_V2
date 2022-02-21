@@ -61,7 +61,7 @@ data_file = {
         {
             "K":[3,4,5],
             "TYPES":['KMEANS'],
-            "VARS":[['anio_ocur','count','Poblacion total',
+            "VARS":[['count','Poblacion total',
             'Poblacion masculina','Poblacion femenina',
             'Total de viviendas habitadas','CVE_ENT','CVE_MUN',
             'lat','lon','TasaD','causasuic_l']],
@@ -69,13 +69,10 @@ data_file = {
         },
         {
             "NORMALIZE":'True',
-            "VARS":[['anio_ocur','count','Poblacion total',
-            'Poblacion masculina','Poblacion femenina',
-            'Total de viviendas habitadas','CVE_ENT','CVE_MUN',
-            'lat','lon','TasaD','causasuic_l']]
+            "VARS":[['anio_ocur','TasaD','causasuic']]
         }
            ],
-    "PIPELINE":["/balance/temporal","analytics/clustering"]
+    "PIPELINE":["balance/temporal","analytics/clustering"]
  }
 
 print('sending')

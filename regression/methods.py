@@ -43,12 +43,12 @@ def regressionLineal(X,y,loggerInfo,loggerError):
         loggerError.error("REGRESSION_FAILED LINEAL")
         return np.zeros(X.shape[0])
 
-def plotRegression(X,y,xLabel,yLabel,predicts,sourcePath,nameSource,loggerInfo,loggerError):
+def plotRegression(X,y,xLabel,yLabel,predicts,sourcePath,nameSource,loggerInfo,loggerError, namePlot):
     try:
         startTime = time.time()
         plt.scatter(X, y, color="blue")
         plt.plot(X, predicts, color ="red", linewidth=3)
-        plt.title(nameSource)
+        plt.title("{} {}".format(nameSource,' '.join(namePlot)))
         plt.ylabel(yLabel)
         plt.xlabel(xLabel)
         plt.savefig(".{}/{}_RL.png".format(sourcePath,nameSource))

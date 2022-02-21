@@ -190,6 +190,7 @@ def balanceEspatial():
             url = workersNodes[worker].getURL(mode=modeToSend,
                                             endPoint=endPoint)
             # loggerError.error('URL {}'.format(url))
+            loggerError.error('URL {}'.format(url))
             timeEndBalance = time.time()
             initService = time.time()
             jsonSend['TIME_S'] = initService
@@ -198,6 +199,7 @@ def balanceEspatial():
             t.start()
     for th in threadsList:
         th.join()
+    
     loggerInfo.info('BALANCE_ESPATIAL {} {}'.format(balanceType, (timeEndBalance-timeStartBalance)))
     # send
 

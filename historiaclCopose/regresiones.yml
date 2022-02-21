@@ -1,0 +1,214 @@
+version: '3'
+services:
+
+  lb_generic_esp_0:
+    image: jmorin98/loadbalancer
+    hostname: lb_generic_esp_1
+    environment:
+
+      NODE_ID: lb_generic_esp_1
+      ALGORITHM: RR
+      IP: '127.0.0.1'
+      PUBLIC_PORT: 5454
+      DOCKER_PORT: 5000
+      MODE: DOCKER 
+      PRESENTATION: 0
+      SOURCE_PATH: /data
+      LOGS_PATH: /logs
+    # build:
+    #   context: ./lb_generic
+    #   dockerfile: ./Dockerfile
+    volumes:
+      - /test/prototipoTest/:/app/data/
+      - /test/prototipoTest/logs:/app/data/logs
+    networks:
+      - proto_net
+    ports:
+      - 5454:5000
+
+  regression_1:
+    image: jmorin98/regression
+    hostname: regression_1
+    environment:
+      NODE_ID: regression_1
+      IP: '127.0.0.1'
+      PUBLIC_PORT: 5001
+      DOCKER_PORT: 5000
+      MODE: DOCKER
+      SEND: 0
+      SOURCE_PATH: /data
+      LOGS_PATH: /logs
+
+      NODE_ID_MANAGER: lb_generic_esp_1
+      IP_MANAGER: '127.0.0.1'
+      PUBILC_PORT_MANAGER: 5454
+      DOCKER_PORT_MANAGER: 5000
+      
+      NODE_ID_SINK: lb_generic_2
+      IP_SINK: '127.0.0.1'
+      PUBILC_PORT_SINK: 5455
+      DOCKER_PORT_SINK: 5000
+
+    # build: 
+    #   context: ./workerGeneric
+    #   dockerfile: ./Dockerfile
+    volumes:
+      - /test/prototipoTest/:/app/data/
+      - /test/prototipoTest/logs/:/app/data/logs
+    networks:
+      - proto_net
+    ports:
+      - 5001:5000
+  
+  regression_2:
+    image: jmorin98/regression
+    hostname: regression_2
+    environment:
+      NODE_ID: regression_2
+      IP: '127.0.0.1'
+      PUBLIC_PORT: 5002
+      DOCKER_PORT: 5000
+      MODE: DOCKER
+      SEND: 0
+      SOURCE_PATH: /data
+      LOGS_PATH: /logs
+
+      NODE_ID_MANAGER: lb_generic_esp_1
+      IP_MANAGER: '127.0.0.1'
+      PUBILC_PORT_MANAGER: 5454
+      DOCKER_PORT_MANAGER: 5000
+      
+      NODE_ID_SINK: lb_generic_2
+      IP_SINK: '127.0.0.1'
+      PUBILC_PORT_SINK: 5455
+      DOCKER_PORT_SINK: 5000
+    volumes:
+      - /test/prototipoTest/:/app/data/
+      - /test/prototipoTest/logs/:/app/data/logs
+    networks:
+      - proto_net
+    ports:
+      - 5002:5000
+  
+  regression_3:
+    image: jmorin98/regression
+    hostname: regression_3
+    environment:
+      NODE_ID: regression_3
+      IP: '127.0.0.1'
+      PUBLIC_PORT: 5003
+      DOCKER_PORT: 5000
+      MODE: DOCKER
+      SEND: 0
+      SOURCE_PATH: /data
+      LOGS_PATH: /logs
+
+      NODE_ID_MANAGER: lb_generic_esp_1
+      IP_MANAGER: '127.0.0.1'
+      PUBILC_PORT_MANAGER: 5454
+      DOCKER_PORT_MANAGER: 5000
+      
+      NODE_ID_SINK: lb_generic_2
+      IP_SINK: '127.0.0.1'
+      PUBILC_PORT_SINK: 5455
+      DOCKER_PORT_SINK: 5000
+    volumes:
+      - /test/prototipoTest/:/app/data/
+      - /test/prototipoTest/logs/:/app/data/logs
+    networks:
+      - proto_net
+    ports:
+      - 5003:5000
+    
+  regression_4:
+    image: jmorin98/regression
+    hostname: regression_4
+    environment:
+      NODE_ID: regression_4
+      IP: '127.0.0.1'
+      PUBLIC_PORT: 5004
+      DOCKER_PORT: 5000
+      MODE: DOCKER
+      SEND: 0
+      SOURCE_PATH: /data
+      LOGS_PATH: /logs
+
+      NODE_ID_MANAGER: lb_generic_esp_1
+      IP_MANAGER: '127.0.0.1'
+      PUBILC_PORT_MANAGER: 5454
+      DOCKER_PORT_MANAGER: 5000
+      
+      NODE_ID_SINK: lb_generic_2
+      IP_SINK: '127.0.0.1'
+      PUBILC_PORT_SINK: 5455
+      DOCKER_PORT_SINK: 5000
+    volumes:
+      - /test/prototipoTest/:/app/data/
+      - /test/prototipoTest/logs/:/app/data/logs
+    networks:
+      - proto_net
+    ports:
+      - 5004:5000
+  
+  regression_5:
+    image: jmorin98/regression
+    hostname: regression_5
+    environment:
+      NODE_ID: regression_5
+      IP: '127.0.0.1'
+      PUBLIC_PORT: 5005
+      DOCKER_PORT: 5000
+      MODE: DOCKER
+      SEND: 0
+      SOURCE_PATH: /data
+      LOGS_PATH: /logs
+
+      NODE_ID_MANAGER: lb_generic_esp_1
+      IP_MANAGER: '127.0.0.1'
+      PUBILC_PORT_MANAGER: 5454
+      DOCKER_PORT_MANAGER: 5000
+      
+      NODE_ID_SINK: lb_generic_2
+      IP_SINK: '127.0.0.1'
+      PUBILC_PORT_SINK: 5455
+      DOCKER_PORT_SINK: 5000
+    volumes:
+      - /test/prototipoTest/:/app/data/
+      - /test/prototipoTest/logs/:/app/data/logs
+    networks:
+      - proto_net
+    ports:
+      - 5005:5000
+
+  regression_6:
+    image: jmorin98/regression
+    hostname: regression_6
+    environment:
+      NODE_ID: regression_6
+      IP: '127.0.0.1'
+      PUBLIC_PORT: 5006
+      DOCKER_PORT: 5000
+      MODE: DOCKER
+      SEND: 0
+      SOURCE_PATH: /data
+      LOGS_PATH: /logs
+
+      NODE_ID_MANAGER: lb_generic_esp_1
+      IP_MANAGER: '127.0.0.1'
+      PUBILC_PORT_MANAGER: 5454
+      DOCKER_PORT_MANAGER: 5000
+      
+      NODE_ID_SINK: lb_generic_2
+      IP_SINK: '127.0.0.1'
+      PUBILC_PORT_SINK: 5455
+      DOCKER_PORT_SINK: 5000
+    volumes:
+      - /test/prototipoTest/:/app/data/
+      - /test/prototipoTest/logs/:/app/data/logs
+    networks:
+      - proto_net
+    ports:
+      - 5006:5000
+
+networks:
+  proto_net:  

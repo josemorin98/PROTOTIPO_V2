@@ -1,20 +1,18 @@
+from enum import unique
 from sklearn.linear_model import LinearRegression
 import pandas as pd
-import matplotlib.pyplot as plt
-import numpy as np
-import seaborn as sns
+import datetime
 
 # df = pd.read_csv("/test/files/rezago/IRS_mpios_2000.csv")
-df = pd.read_csv("/test/files/muertes/TasaD.csv")
+df = pd.read_csv("/test/prototipoTest/TasaD_pre.csv")
 
-corr = df.corr()
-# Generate a mask for the upper triangle
-mask = np.triu(np.ones_like(corr, dtype=bool))
+# datetime.strptime(aux[x], '%Y-%m-%d %H:%M:%S')
+# print(df['anio_ocur'])
 
-# Set up the matplotlib figure
-f, ax = plt.subplots(figsize=(9, 9))
 
-# Draw the heatmap with the mask and correct aspect ratio
-ax = sns.heatmap(corr, annot=True, linewidths=.5, vmin=0, vmax=1, cbar_kws={'label': 'colorbar title'})
-sns.set(font_scale=.1)
-plt.show()
+# df['cause'] = pd.to_datetime(df["anio_ocur"],format='%Y')
+# df['anio_ocur'] = df['anio_ocur'].dt.strftime('%Y-%m-%d %H:%M:%S')
+# print(df['anio_ocur'])
+# df.to_csv("./TasaD_preV2.csv",index=False)
+uniqueV = df['causasuic'].unique()
+print(uniqueV)

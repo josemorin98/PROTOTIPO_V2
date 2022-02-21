@@ -20,6 +20,7 @@ app.config['PROPAGATE_EXCEPTIONS'] = True
 logPath = os.environ.get("LOGS_PATH",'/logs')
 sourcePath = os.environ.get("SOURCE_PATH","/data")
 nodeId = os.environ.get("NODE_ID",'')
+presentationValue = os.environ.get('PRESENTATION',"1")
 
 # CONFIG LOGS ERROR INFO
 # Format to logs
@@ -244,7 +245,7 @@ def balanceTemporal():
                         uniqueIdTemporal.add(y)
                         break
                     
-            # app.logger.error(len(temporal))
+            loggerError.error('Temporalid total {} {}'.format(len(temporalId), len(aux)))
             # df['Temporal'] = temporalRanges
             df['TemporalId'] = temporalId
             df.to_csv('.{}/{}'.format(sourcePath,sources[pos]), index=False)
@@ -257,6 +258,7 @@ def balanceTemporal():
     workersCant = len(state["nodes"])
     # lista de objetos de trabajadores
     workersNodes = state["nodes"]
+    loggerError.error("Unique Temporal {}".format(uniqueIdTemporal))
     # inicialzar las cajas correspondientes a cada trabajador
     initWorkres = mtd.initWorkresArray(workersCant)
     # Divide las cargas entre los n workers
@@ -310,7 +312,7 @@ def presentation():
     infoSend = {'nodeId': state['nodeId'],
                 'ip': state['ip'],
                 'publicPort': state['publicPort'],
-                'dockerPort': state['publicPort']}
+                'dockerPort': state['dockerPort']}
     
     # send info to manager
     headers = {'PRIVATE-TOKEN': '<your_access_token>', 'Content-Type':'application/json'}
@@ -321,7 +323,7 @@ def presentation():
             # app.logger.info(nodeManager.getURL(mode=state['mode']))
             # Node Manager
             
-            if (os.environ.get('PRESENTATION') == "0"):
+            if (presentationValue == "0"):
                 break
             startTime = time.time()
             url = nodeManager.getURL(mode=state['mode'])
@@ -329,6 +331,7 @@ def presentation():
             requests.post(url, data=json.dumps(infoSend), headers=headers)
             endTime = time.time()
             loggerInfo.info('CONNECTION_SUCCESSFULLY PRESENTATION_SEND {} {}'.format(nodeManager.nodeId, (endTime-startTime)))
+            presentationValue = "0"
             break
         except requests.ConnectionError:
             loggerError.error('CONNECTION_REFUSED PRESENTATION_SEND {} 0'.format(nodeManager.nodeId))

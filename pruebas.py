@@ -51,12 +51,12 @@ vars_clus = ['porc_pob_mas15_analfab','porc_pob_6_14_sin_asistir_esc',
 
 
 data_file = {
-    "SOURCES":["TasaD_pre.csv"],
-    "START":"2000-12-01 00:00:00",
-    "END":"2000-12-05 00:00:00",
+    "SOURCES":["TasaD_preV2.csv"],
+    "START":"2000-01-01 00:00:00",
+    "END":"2019-12-31 00:00:00",
     "ESPATIAL":[["causasuic"]],
-    "TEMPORAL":[["Temporal","dia",2]], #col,range,cant
-    "BALANCE":["ESPATIAL"],
+    "TEMPORAL":[["anio_ocur","anio",1]], #col,range,cant
+    "BALANCE":["ESPATIAL","TEMPORAL"],
     "PARAMS":[
         {
             "K":[3,4,5],
@@ -75,7 +75,7 @@ data_file = {
             'lat','lon','TasaD','causasuic_l']]
         }
            ],
-    "PIPELINE":["analytics/clustering"]
+    "PIPELINE":["/balance/temporal","analytics/clustering"]
  }
 
 print('sending')

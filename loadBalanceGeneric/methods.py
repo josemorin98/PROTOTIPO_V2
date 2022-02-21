@@ -8,6 +8,13 @@ def initWorkresArray(workers):
         pet_in.append([])
     return pet_in
 
+def trueOrFalse(val):
+    trueList = ['True','true','1','TRUE','t','T',1]
+    if (val in trueList):
+        return True
+    else: 
+        return False
+        
 # def RaoundRobin(cargas, traza, workers):
 #     for x in range(len(traza.iloc[:,0])):
 #         select_bin = x % workers

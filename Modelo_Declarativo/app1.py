@@ -9,13 +9,20 @@ class NodeContainer():
                     dockerFile, volumes):
         self.hostname = hostname
         self.image = image
-        self.volumes = volumes
+        self.volumes = self.volumesArray(volumes) # debde de ser un array
         # Si es falso no tiene contexto, es decir, la imagen estaa en docker hub
         if (context==False):
             self.context = False
         else:
             self.context = context
             self.dockerFile = dockerFile
+
+    def volumesArray(self,volumes):
+        # split de los volumenes
+        jsonVolumes = {}
+        jsonVolumes[volumes] = "/app/data/"
+        jsonVolumes["{}/logs/".format(volumes)] = "/app/data/logs/"
+        return jsonVolumes
 
     # Genrador de json paraa yml
     def toJSON(self,id, environment, network, ports):
@@ -24,7 +31,7 @@ class NodeContainer():
                 'image': self.image,
                 'hostname': hostName,
                 'environment':environment,
-                'volumes': [self.volumes],
+                'volumes': self.volumes,
                 'networks': [network],
                 'ports': [ports]
             }
@@ -95,7 +102,8 @@ for modulo in modulos_names:
     if (mod.__contains__('context')):
         listModules[modulo] = NodeContainer(hostname = mod['hostname'],
                                             image=mod['image'],
-                                            context=mod['context'], dockerFile=mod['dockerfile'],
+                                            context=mod['context'], 
+                                            dockerFile=mod['dockerfile'],
                                             volumes=mod['volumes'])
     else:
         listModules[modulo] = NodeContainer(hostname = mod['hostname'],

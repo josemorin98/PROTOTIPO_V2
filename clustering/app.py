@@ -1,4 +1,5 @@
 import logging
+import threading
 import time
 from flask import Flask, request
 from flask import jsonify
@@ -19,6 +20,8 @@ app.config['PROPAGATE_EXCEPTIONS'] = True
 logPath = os.environ.get("LOGS_PATH",'/logs')
 sourcePath = os.environ.get("SOURCE_PATH","")
 nodeId = os.environ.get("NODE_ID",'prueba')
+send = mtd.trueOrFalse(val=os.environ.get("SEND",1)) # si en envia
+presentationValue = os.environ.get('PRESENTATION',"1")
 
 # CONFIG LOGS ERROR INFO
 # Format to logs
@@ -91,7 +94,7 @@ def presentation():
     infoSend = {'nodeId': state['nodeId'],
                 'ip': state['ip'],
                 'publicPort': state['publicPort'],
-                'dockerPort': state['publicPort']}
+                'dockerPort': state['dockerPort']}
     # send info to manager
     headers = {'PRIVATE-TOKEN': '<your_access_token>', 'Content-Type':'application/json'}
     # Node Manager
@@ -99,12 +102,15 @@ def presentation():
         try:
             # app.logger.info(nodeManager.getURL(mode=state['mode']))
             # Node Manager
+            if (presentationValue == "0"):
+                break
             startTime = time.time()
             url = nodeManager.getURL(mode=state['mode'])
             # app.logger.info(url)
             requests.post(url, data=json.dumps(infoSend), headers=headers)
             endTime = time.time()
             loggerInfo.info('CONNECTION_SUCCESSFULLY PRESENTATION_SEND {} {}'.format(nodeManager.nodeId, (endTime-startTime)))
+            presentationValue = "0"
             break
         except requests.ConnectionError:
             loggerError.error('CONNECTION_REFUSED PRESENTATION_SEND {} 0'.format(nodeManager.nodeId))
@@ -160,6 +166,14 @@ def clusterExec(kValues,clusterTypes,sourceData,clusterVariables,nameSource,node
     return nameSourceNew
  
 
+
+
+
+def enviar_datos(url,jsonSend):
+    headers = {'PRIVATE-TOKEN': '<your_access_token>', 'Content-Type':'application/json'}
+    requests.post(url, data=json.dumps(jsonSend), headers=headers)
+    
+    
 # Clustering process
 @app.route('/analytics/clustering', methods = ['POST'])
 def clustering():
@@ -193,6 +207,29 @@ def clustering():
             ext = executor.submit(clusterExec,kValues,clusterTypes,clusterData,clusterVariables[src],sources[src],nodeId,silhouette)
             sourcesNew.append(ext.result())
 
+    
+    # si es verdadero enviamos
+    if (send==True):
+        workersCant = len(state["nodes"])
+        jsonSend = message
+        workersNodes = state["nodes"]
+        modeToSend = state["mode"]
+        endPoint = jsonSend["PIPELINE"][0]
+        threadsList = list()
+        for worker in range(workersCant):
+            # Actualizamos el arreglo de fuentes a enviar
+            jsonSend["SOURCES"] = sourcesNew
+            url = workersNodes[worker].getURL(mode=modeToSend,
+                                            endPoint=endPoint)
+            # loggerError.error('URL {}'.format(url))
+            timeEndBalance = time.time()
+            initService = time.time()
+            jsonSend['TIME_S'] = initService
+            t = threading.Thread(target=enviar_datos, args=(url,jsonSend))
+            threadsList.append(t)
+            t.start()
+    for th in threadsList:
+        th.join()
     return "OK"
 
 if __name__ == '__main__':

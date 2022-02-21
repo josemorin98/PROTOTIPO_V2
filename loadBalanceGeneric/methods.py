@@ -9,7 +9,7 @@ def initWorkresArray(workers):
     return pet_in
 
 def trueOrFalse(val):
-    trueList = ['True','true','1','TRUE','t','T',1]
+    trueList = ["True","true","1","TRUE","t","T",1]
     if (val in trueList):
         return True
     else: 

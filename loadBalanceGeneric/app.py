@@ -20,7 +20,7 @@ app.config['PROPAGATE_EXCEPTIONS'] = True
 logPath = os.environ.get("LOGS_PATH",'/logs')
 sourcePath = os.environ.get("SOURCE_PATH","/data")
 nodeId = os.environ.get("NODE_ID",'')
-presentationValue = os.environ.get('PRESENTATION',"1")
+presentationValue = mtd.trueOrFalse(os.environ.get('PRESENTATION',"1"))
 
 # CONFIG LOGS ERROR INFO
 # Format to logs
@@ -308,6 +308,7 @@ def balanceTemporal():
 def presentation():
     global state
     global nodeManager
+    global presentationValue
     # send info to manager node
     infoSend = {'nodeId': state['nodeId'],
                 'ip': state['ip'],
@@ -323,7 +324,7 @@ def presentation():
             # app.logger.info(nodeManager.getURL(mode=state['mode']))
             # Node Manager
             
-            if (presentationValue == "0"):
+            if (presentationValue == False):
                 break
             startTime = time.time()
             url = nodeManager.getURL(mode=state['mode'])
@@ -331,7 +332,7 @@ def presentation():
             requests.post(url, data=json.dumps(infoSend), headers=headers)
             endTime = time.time()
             loggerInfo.info('CONNECTION_SUCCESSFULLY PRESENTATION_SEND {} {}'.format(nodeManager.nodeId, (endTime-startTime)))
-            presentationValue = "0"
+            presentationValue = False
             break
         except requests.ConnectionError:
             loggerError.error('CONNECTION_REFUSED PRESENTATION_SEND {} 0'.format(nodeManager.nodeId))

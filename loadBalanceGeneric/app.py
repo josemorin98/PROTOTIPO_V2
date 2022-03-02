@@ -1,6 +1,5 @@
 from datetime import datetime
 import json
-from platform import node
 import threading
 from flask import Flask, request
 from flask import jsonify
@@ -8,6 +7,7 @@ from node import NodeWorker
 import os
 import time
 import methods as mtd
+import node as node
 import logging
 import requests
 import pandas as pd
@@ -21,6 +21,7 @@ logPath = os.environ.get("LOGS_PATH",'/logs')
 sourcePath = os.environ.get("SOURCE_PATH","/data")
 nodeId = os.environ.get("NODE_ID",'')
 presentationValue = mtd.trueOrFalse(os.environ.get('PRESENTATION',"1"))
+# Path("{}/{}".format(sourcePath,nodeId)).mkdir(parents=True, exist_ok=True)
 
 # CONFIG LOGS ERROR INFO
 # Format to logs
@@ -49,6 +50,9 @@ loggerError.setLevel(logging.ERROR)
 loggerError.addHandler(hdlr_2)
 loggerError.addHandler(console)
 
+if (not os.path.exists(".{}/{}".format(sourcePath,nodeId))):
+    os.mkdir(".{}/{}".format(sourcePath,nodeId))
+
 
 # Cambiar a variables de entorno
 state = { 'nodes': [],
@@ -60,11 +64,12 @@ state = { 'nodes': [],
             'mode': os.environ.get('MODE','DOCKER')}
 
 # Save manager node info
-nodeInfoManager = {'nodeId': os.environ.get('NODE_ID_MANAGER',''),
+nodeInfoManager = {'nodeId': os.environ.get('NODE_ID_MANAGER','-'),
             'ip': os.environ.get('IP_MANAGER','127.0.0.1'),
             'publicPort': os.environ.get('PUBLIC_PORT_MANAGER',5000),
             'dockerPort': os.environ.get('DOCKER_PORT_MANAGER',5000)}
-nodeManager = NodeWorker(**nodeInfoManager)
+nodeManager = node.NodeWorker(**nodeInfoManager)
+mtd.initEspatial()
 
 
 # ADD NODE WORKER
@@ -111,6 +116,8 @@ def enviar_datos(url,jsonSend):
 def balanceEspatial():
     # global ip
     global state
+    global nodeManager
+
     nodes = state['nodes']
     # Recibe los datos
     message = request.get_json()
@@ -124,15 +131,17 @@ def balanceEspatial():
         toBalanceData = message["SOURCES"]
     # Si selecciona espacial, se balanceara por espacial de acuerdo a las fuentes
     elif(balanceType == "ESPATIAL"):
-        sources = message["SOURCES"] # Seleccionamos las fuentes
-        variablesToBalance = message["ESPATIAL"] # Selecionamos las columnas de balanceo de cada archivo
-        toBalanceData = mtd.readColumnsToBalance(sourcePath=sourcePath,fuentes=sources, variable_to_balance=variablesToBalance) # Extramos los valores unicos de cada fuente
+        variablesToBalance = message["ESPATIAL"] # Selecionamos el tipo de balanceo ["STATE","MUN"]
+        # toBalanceData = mtd.readColumnsToBalance(sourcePath=sourcePath,fuentes=sources, variable_to_balance=variablesToBalance) # Extramos los valores unicos de cada fuente
+        typeBalanceEspatial = message["TYPE_ESPATIAL"]
+        toBalanceData = mtd.typeBalnceEspatial(typeBalance=typeBalanceEspatial)
+        
     else:
         toBalanceData = message["SOURCES"] # lista de datos a balancear (son las fuentes)
         balanceType = "SOURCES" # Tipo de balanceo a realizar
         
     # genera los balaneacdores vacios
-    workersCant = len(state["nodes"])
+    workersCant = len(nodes)
     # lista de objetos de trabajadores
     workersNodes = state["nodes"]
     # inicialzar las cajas correspondientes a cada trabajador
@@ -141,7 +150,6 @@ def balanceEspatial():
     balanceData = mtd.toBalanceData(initWorkers=initWorkres,
                                     balanceData=toBalanceData,
                                     algorithm=state["algorithm"])
-    
     # Realizamos una copia el json de enrtada
     jsonSend = message
     # Eliminamos el termino de balanceo
@@ -168,23 +176,30 @@ def balanceEspatial():
             t.start()
     elif(balanceType == "ESPATIAL"):
         # app.logger.info(balanceo)
-        # actualizamos las fuentes para cada trabajador
-        sourcesNew = jsonSend["SOURCES"]
+        #etraemos las fuentes
+        sourcesActual = jsonSend["SOURCES"]
         # mandamos a cada trabajador lo que le corresponde
         # actualizamos los balanceos
-        
         for worker in range(workersCant):
             sourcesNewList = list()
             # leemos los archivos
-            for src in range(len(sources)):
-                df = pd.read_csv('.{}/{}'.format(sourcePath,sources[src]))
-                # Solo seleccionamos las filas que correspondan a su balanceo
-                dfRows = df.loc[df[variablesToBalance[src][0]].isin(balanceData[worker])]
-                # Guardamos el nombre del nuevo archivo a leer
-                nameFileNew ='esp_{}_{}'.format(worker, sources[src])
-                sourcesNewList.append(nameFileNew)
-                # Creamos el archivo nuevo
-                dfRows.to_csv('.{}/{}'.format(sourcePath,nameFileNew), index = False)
+            for src in range(len(sourcesActual)):
+                # iteramos por espacial
+                for espatialValue in balanceData[worker]:
+                    if (nodeManager.getID()=="-"):
+                        df = pd.read_csv('.{}/{}'.format(sourcePath,sourcesActual[src]))
+                    else:
+                        df = pd.read_csv('.{}/{}/{}'.format(sourcePath,nodeManager.getID(),sourcesActual[src]))
+                    # Solo seleccionamos las filas que correspondan a su balanceo
+                    dfRows = df[df[variablesToBalance[src][0]].isin([espatialValue])]
+                    # Guardamos el nombre del nuevo archivo a leer
+                    if (dfRows.shape[0]>0):
+                        nameFileNew ='esp_{}_{}'.format(espatialValue.replace(" ", ""),sourcesActual[src])
+                        sourcesNewList.append(nameFileNew)
+                        # Creamos el archivo nuevo
+                        dfRows.to_csv('.{}/{}/{}'.format(sourcePath, state['nodeId'], nameFileNew), index = False)
+                    else:
+                        loggerError.error(espatialValue)
             # Actualizamos el arreglo de fuentes a enviar
             jsonSend["SOURCES"] = sourcesNewList
             url = workersNodes[worker].getURL(mode=modeToSend,
@@ -201,14 +216,13 @@ def balanceEspatial():
         th.join()
     
     loggerInfo.info('BALANCE_ESPATIAL {} {}'.format(balanceType, (timeEndBalance-timeStartBalance)))
-    # send
 
     return jsonify({'DATA':'Termino'})
 
 @app.route('/balance/temporal',methods = ['POST'])
 def balanceTemporal():
-    global ip
-    global port
+    global state
+    global nodeManager
     # Recibe los datos
     message = request.get_json()
     # recibimos el tipo de balanceo
@@ -221,14 +235,18 @@ def balanceTemporal():
     if(balanceType == 'TEMPORAL'):
         sources = message["SOURCES"] # Seleccionamos las fuentes
         variablesToBalance = message["TEMPORAL"] # Selecionamos las columnas de balanceo de cada archivo
-        ranges = mtd.defColumnDate(variables_to_date=variablesToBalance,fuentes=sources,inicio=message['START'],fin=message['END'])
+        typeTemporal = message["TYPE_TEMPORAL"]
+        ranges = mtd.generateRangos(inicio=message['START'],fin=message['END'],tipo=typeTemporal[0],n=typeTemporal[1])
         # leemos el archivo
         uniqueIdTemporal = set([])
         for pos in range(len(sources)):
             # leemos el arhivo y convertimos las fila fecha en datetime
-            df = pd.read_csv('.{}/{}'.format(sourcePath,sources[pos]))
+            if (nodeManager.getID()=="-"):
+                df = pd.read_csv('.{}/{}'.format(sourcePath,sources[pos]))
+            else:
+                df = pd.read_csv('.{}/{}/{}'.format(sourcePath,nodeManager.getID(),sources[pos]))
             # obtenemos la cloumna fecha
-            aux = df[variablesToBalance[pos][0]].to_list()
+            aux = df[variablesToBalance[pos]].to_list()
             # aux = pd.to_datetime(aux,format="%Y-%m-%d %H:%M:%S")
             # generamos la columna temporal
             temporalRanges = list()
@@ -238,11 +256,11 @@ def balanceTemporal():
                 time_d = datetime.strptime(aux[x], '%Y-%m-%d %H:%M:%S')
                 for y in range(len(ranges)):
                     if(y == len(ranges)-1):
-                        temporalRanges.append(mtd.generateStringDate(tipo=variablesToBalance[pos][1],inicio=ranges[y-1],fin=ranges[y]))
+                        temporalRanges.append(mtd.generateStringDate(tipo=typeTemporal[0],inicio=ranges[y-1],fin=ranges[y]))
                         temporalId.append(y)
                         uniqueIdTemporal.add(y)
                     elif (time_d >= ranges[y] and time_d < ranges[y+1]):
-                        temporalRanges.append(mtd.generateStringDate(tipo=variablesToBalance[pos][1],inicio=ranges[y],fin=ranges[y+1]))
+                        temporalRanges.append(mtd.generateStringDate(tipo=typeTemporal[0],inicio=ranges[y],fin=ranges[y+1]))
                         temporalId.append(y)
                         uniqueIdTemporal.add(y)
                         break
@@ -250,7 +268,7 @@ def balanceTemporal():
             loggerError.error('Temporalid total {} {}'.format(len(temporalId), len(aux)))
             # df['Temporal'] = temporalRanges
             df['TemporalId'] = temporalId
-            df.to_csv('.{}/{}'.format(sourcePath,sources[pos]), index=False)
+            df.to_csv('.{}/{}/{}'.format(sourcePath, nodeManager.getID(), sources[pos]), index=False)
         # toBalanceData = mtd.readColumnsToBalance(fuentes=sources, variable_to_balance=variablesToBalance) # Extramos los valores unicos de cada fuente
         
     else:
@@ -278,19 +296,28 @@ def balanceTemporal():
     threads = list()
     for worker in range(workersCant):
         sourcesNewList = list()
+        sourcesActual = message["SOURCES"]
         # leemos los archivos
+        cont = 0
         for src in range(len(sources)):
             loggerInfo.info(balanceData[worker])
-            df = pd.read_csv('.{}/{}'.format(sourcePath,sources[src]))
+            for temporalValue in balanceData[worker]:
+                if (nodeManager.getID()=="-"):
+                    df = pd.read_csv('.{}/{}'.format(sourcePath,sourcesActual[src]))
+                else:
+                    df = pd.read_csv('.{}/{}/{}'.format(sourcePath,nodeManager['nodeId'],sourcesActual[src]))
+
+            # df = pd.read_csv('.{}/{}'.format(sourcePath,sources[src]))
             # Solo seleccionamos las filas que correspondan a su balanceo
-            dfRows = df.loc[df['TemporalId'].isin(balanceData[worker])]
+                dfRows = df[df['TemporalId'].isin([temporalValue])]
             # app.logger.info(rows_df.shape)
             # app.logger.info(balanceos_send[x])
             # Guardamos el nombre del nuevo archivo a leer
-            nameFileNew ='tem_{}_{}'.format(worker, sources[src])
-            sourcesNewList.append(nameFileNew)
+                nameFileNew ='temp_{}_{}'.format(temporalRanges[cont],sources[src])
+                cont = cont + 1
+                sourcesNewList.append(nameFileNew)
             # Creamos el archivo nuevo
-            dfRows.to_csv('.{}/{}'.format(sourcePath,nameFileNew),index = False)
+                dfRows.to_csv('.{}/{}/{}'.format(sourcePath, state['nodeId'], nameFileNew),index = False)
             # Actualizamos el arreglo de fuentes a enviar
         jsonSend["SOURCES"] = sourcesNewList
         # url = 'http://'+nodes[x]+':'+str(port)+'/get_data'
@@ -305,12 +332,12 @@ def balanceTemporal():
     return jsonify({'DATA':'Termino'})
  
 
-
 @app.before_first_request
 def presentation():
     global state
     global nodeManager
     global presentationValue
+    global stateList
     # send info to manager node
     infoSend = {'nodeId': state['nodeId'],
                 'ip': state['ip'],
@@ -335,6 +362,7 @@ def presentation():
             endTime = time.time()
             loggerInfo.info('CONNECTION_SUCCESSFULLY PRESENTATION_SEND {} {}'.format(nodeManager.nodeId, (endTime-startTime)))
             presentationValue = False
+            # read json states
             break
         except requests.ConnectionError:
             loggerError.error('CONNECTION_REFUSED PRESENTATION_SEND {} 0'.format(nodeManager.nodeId))

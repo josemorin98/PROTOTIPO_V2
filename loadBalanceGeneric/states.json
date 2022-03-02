@@ -1,0 +1,162 @@
+[
+    {
+      "name": "Ciudad de Mexico",
+      "abbreviation": "CDMX",
+      "subdivision": "city mexico"
+    },
+    {
+      "name": "Aguascalientes",
+      "abbreviation": "AGU",
+      "subdivision": "state"
+    },
+    {
+      "name": "Baja California",
+      "abbreviation": "BCN",
+      "subdivision": "state"
+    },
+    {
+      "name": "Baja California Sur",
+      "abbreviation": "BCS",
+      "subdivision": "state"
+    },
+    {
+      "name": "Campeche",
+      "abbreviation": "CAM",
+      "subdivision": "state"
+    },
+    {
+      "name": "Chiapas",
+      "abbreviation": "CHP",
+      "subdivision": "state"
+    },
+    {
+      "name": "Chihuahua",
+      "abbreviation": "CHH",
+      "subdivision": "state"
+    },
+    {
+      "name": "Coahuila",
+      "abbreviation": "COA",
+      "subdivision": "state"
+    },
+    {
+      "name": "Colima",
+      "abbreviation": "COL",
+      "subdivision": "state"
+    },
+    {
+      "name": "Durango",
+      "abbreviation": "DUR",
+      "subdivision": "state"
+    },
+    {
+      "name": "Guanajuato",
+      "abbreviation": "GUA",
+      "subdivision": "state"
+    },
+    {
+      "name": "Guerrero",
+      "abbreviation": "GRO",
+      "subdivision": "state"
+    },
+    {
+      "name": "Hidalgo",
+      "abbreviation": "HID",
+      "subdivision": "state"
+    },
+    {
+      "name": "Jalisco",
+      "abbreviation": "JAL",
+      "subdivision": "state"
+    },
+    {
+      "name": "Michoacan",
+      "abbreviation": "MIC",
+      "subdivision": "state"
+    },
+    {
+      "name": "Morelos",
+      "abbreviation": "MOR",
+      "subdivision": "state"
+    },
+    {
+      "name": "Nayarit",
+      "abbreviation": "NAY",
+      "subdivision": "state"
+    },
+    {
+      "name": "Nuevo Leon",
+      "abbreviation": "NLE",
+      "subdivision": "state"
+    },
+    {
+      "name": "Oaxaca",
+      "abbreviation": "OAX",
+      "subdivision": "state"
+    },
+    {
+      "name": "Puebla",
+      "abbreviation": "PUE",
+      "subdivision": "state"
+    },
+    {
+      "name": "Queretaro",
+      "abbreviation": "QUE",
+      "subdivision": "state"
+    },
+    {
+      "name": "Quintana Roo",
+      "abbreviation": "ROO",
+      "subdivision": "state"
+    },
+    {
+      "name": "San Luis Potosi",
+      "abbreviation": "SLP",
+      "subdivision": "state"
+    },
+    {
+      "name": "Sinaloa",
+      "abbreviation": "SIN",
+      "subdivision": "state"
+    },
+    {
+      "name": "Sonora",
+      "abbreviation": "SON",
+      "subdivision": "state"
+    },
+    {
+      "name": "Tabasco",
+      "abbreviation": "TAB",
+      "subdivision": "state"
+    },
+    {
+      "name": "Tamaulipas",
+      "abbreviation": "TAM",
+      "subdivision": "state"
+    },
+    {
+      "name": "Tlaxcala",
+      "abbreviation": "TLA",
+      "subdivision": "state"
+    },
+    {
+      "name": "Veracruz",
+      "abbreviation": "VER",
+      "subdivision": "state"
+    },
+    {
+      "name":"Veracruz de Ignacio de la Llave",
+      "abbreviation": "VER",
+      "subdivision": "state"
+    },
+    {
+      "name": "Yucat�n",
+      "abbreviation": "YUC",
+      "subdivision": "state"
+    },
+    {
+      "name": "Zacatecas",
+      "abbreviation": "ZAC",
+      "subdivision": "state"
+    }
+  ]

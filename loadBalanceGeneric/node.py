@@ -23,3 +23,6 @@ class NodeWorker():
                 "ip"         : self.ip,
                 "publicPort" : self.publicPort,
                 "dockerPort" : self.dockerPort}
+
+    def getID(self):
+        return self.nodeId

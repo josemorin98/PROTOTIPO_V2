@@ -94,15 +94,15 @@ def regressionExec(regressionData, normalize, regressionVariables, nameSource, n
     # loggerError.error('{} - {}'.format(regressionVariables[0],regressionVariables[1]))
     X=data_p[regressionVariables[0]].values.reshape(-1,1)
     y=data_p[regressionVariables[1]].values.reshape(-1,1)
-    regressionLabels = mtd.regressionLineal(X=X,y=y,loggerInfo=loggerInfo,loggerError=loggerError)
+    regressionLabels,R2 = mtd.regressionLineal(X=X,y=y,loggerInfo=loggerInfo,loggerError=loggerError)
     regressionData['regressionLineal'] = regressionLabels
     # ploting
     X_=regressionData[regressionVariables[0]].values.reshape(-1,1)
-    y_=regressionData[regressionVariables[1]].values.reshape(-1,1)
-    mtd.plotRegression(X=X_, y=y_, xLabel=regressionVariables[0],sourcePath=sourcePath,
+    # y_=regressionData[regressionVariables[1]].values.reshape(-1,1)
+    mtd.plotRegression(X=X_, y=y, xLabel=regressionVariables[0],sourcePath=sourcePath,
                 yLabel=regressionVariables[1],predicts=regressionLabels,
                 nameSource='{}_RL_plot'.format(nameSource),loggerInfo=loggerInfo,
-                loggerError=loggerError, namePlot = nameLabels)
+                loggerError=loggerError, namePlot = nameLabels, r2=R2)
     nameSourceNew =  "{}_{}".format(nodeId,nameSource)
     regressionData.to_csv(".{}/{}".format(sourcePath,nameSourceNew), index = False)
     return nameSourceNew

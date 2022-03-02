@@ -1,0 +1,29 @@
+version: '3'
+services:
+ 
+  mongo: #shapes database
+    image: mongo:4.4
+    restart: always
+    expose:
+      - "27017/tcp"
+    #ports:
+      #- 27017:27017
+    volumes:
+      - mongodbdata:/data/db
+  metadata: #shapes
+    image: 127.0.0.1:5000/meteots_metadata
+    restart: always
+    build:
+      context: ./metadata
+      dockerfile: ./Dockerfile
+    volumes:
+      - ./metadata/app:/app
+    ports:
+      - 5505:5000
+    environment:
+      MONGO_DB: mongo
+    depends_on:
+      - mongo
+
+volumes:
+  mongodbdata:

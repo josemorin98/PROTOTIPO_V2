@@ -54,25 +54,27 @@ data_file = {
     "SOURCES":["TasaD_preV2.csv"],
     "START":"2000-01-01 00:00:00",
     "END":"2019-12-31 00:00:00",
-    "ESPATIAL":[["causasuic"]],
-    "TEMPORAL":[["anio_ocur","anio",1]], #col,range,cant
+    "ESPATIAL":[["nombre entidad"]],
+    "TYPE_ESPATIAL":"STATE",
+    "TEMPORAL":["anio_ocur"], #col,range,cant
+    "TYPE_TEMPORAL":["anio",1],
     "BALANCE":["ESPATIAL","TEMPORAL"],
     "PARAMS":[
-        {
-            "K":[3,4,5],
-            "TYPES":['KMEANS'],
-            "VARS":[['count','Poblacion total',
-            'Poblacion masculina','Poblacion femenina',
-            'Total de viviendas habitadas','CVE_ENT','CVE_MUN',
-            'lat','lon','TasaD','causasuic_l']],
-            "SILHOUETTE":1
-        },
+        # {
+        #     "K":[3,4,5],
+        #     "TYPES":['KMEANS'],
+        #     "VARS":[['count','Poblacion total',
+        #     'Poblacion masculina','Poblacion femenina',
+        #     'Total de viviendas habitadas','CVE_ENT','CVE_MUN',
+        #     'lat','lon','TasaD','causasuic_l']],
+        #     "SILHOUETTE":1
+        # },
         {
             "NORMALIZE":'True',
             "VARS":[['anio_ocur','TasaD','causasuic']]
         }
            ],
-    "PIPELINE":["balance/temporal","analytics/clustering"]
+    "PIPELINE":["balance/temporal"]
  }
 
 print('sending')

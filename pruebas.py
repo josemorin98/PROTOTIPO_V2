@@ -51,7 +51,7 @@ vars_clus = ['porc_pob_mas15_analfab','porc_pob_6_14_sin_asistir_esc',
 
 
 data_file = {
-    "SOURCES":["TasaD_preV2.csv"],
+    "SOURCES":["TasaD_preV3.csv"],
     "START":"2000-01-01 00:00:00",
     "END":"2019-12-31 00:00:00",
     "ESPATIAL":[["nombre entidad"]],
@@ -79,7 +79,7 @@ data_file = {
 
 print('sending')
 
-url = 'http://192.168.1.73:5454/balance/espatial' # Negocio
+url = 'http://148.247.204.165:5454/balance/espatial' # Negocio
 # url = 'http://192.168.1.73:5000/analytics/clustering'
 # url = 'http://192.168.0.16:4001/get_datos'
 # url = 'http://localhost:5000/get_data'

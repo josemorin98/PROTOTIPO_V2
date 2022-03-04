@@ -58,7 +58,7 @@ data_file = {
     "TYPE_ESPATIAL":"STATE",
     "TEMPORAL":["anio_ocur"], #col,range,cant
     "TYPE_TEMPORAL":["anio",1],
-    "BALANCE":["ESPATIAL","TEMPORAL"],
+    "BALANCE":["TEMPORAL","ESPACIAL"],
     "PARAMS":[
         # {
         #     "K":[3,4,5],
@@ -74,12 +74,12 @@ data_file = {
             "VARS":[['anio_ocur','TasaD','causasuic']]
         }
            ],
-    "PIPELINE":["balance/temporal"]
+    "PIPELINE":["balance/espatial"]
  }
 
 print('sending')
 
-url = 'http://148.247.204.165:5454/balance/espatial' # Negocio
+url = 'http://148.247.204.165:5454/balance/temporal' # Negocio
 # url = 'http://192.168.1.73:5000/analytics/clustering'
 # url = 'http://192.168.0.16:4001/get_datos'
 # url = 'http://localhost:5000/get_data'

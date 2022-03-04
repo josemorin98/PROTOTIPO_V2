@@ -1,3 +1,4 @@
+from operator import index
 from sklearn.linear_model import LinearRegression
 import pandas as pd
 import datetime
@@ -9,9 +10,9 @@ import numpy as np
 
 
 # df = pd.read_csv("/test/files/rezago/IRS_mpios_2000.csv")
-df = pd.read_csv("/test/prototipoTest/TasaD_preV3.csv")
+df = pd.read_csv("/test/prototipoTest/TasaD_preV3.csv", index_col=0)
 
-print(df['nombre entidad'].unique())
+print(df.columns)
 # datetime.strptime(aux[x], '%Y-%m-%d %H:%M:%S')
 # print(df['anio_ocur'])
 
@@ -66,4 +67,4 @@ print(df['nombre entidad'].unique())
 
 # df['nombre entidad'] = newEntity
 # print(list(setEntities))
-# df.to_csv("./TasaD_preV3.csv")
+df.to_csv("./TasaD_preV3.csv", index=False)

@@ -236,9 +236,11 @@ def balanceTemporal():
         sources = message["SOURCES"] # Seleccionamos las fuentes
         variablesToBalance = message["TEMPORAL"] # Selecionamos las columnas de balanceo de cada archivo
         typeTemporal = message["TYPE_TEMPORAL"]
+        # Generamos los rangos
         ranges = mtd.generateRangos(inicio=message['START'],fin=message['END'],tipo=typeTemporal[0],n=typeTemporal[1])
+        # loggerError.error("Len Ranges {}".format(len(ranges)))
         # leemos el archivo
-        uniqueIdTemporal = set([])
+        uniqueIdTemporal = set([]) # Temporales unicos
         for pos in range(len(sources)):
             # leemos el arhivo y convertimos las fila fecha en datetime
             if (nodeManager.getID()=="-"):
@@ -246,7 +248,9 @@ def balanceTemporal():
             else:
                 df = pd.read_csv('.{}/{}/{}'.format(sourcePath,nodeManager.getID(),sources[pos]))
             # obtenemos la cloumna fecha
-            aux = df[variablesToBalance[pos]].to_list()
+            varaibleSource = variablesToBalance[pos]
+            loggerError.error("VariableSource {}".format(varaibleSource))
+            aux = df[varaibleSource].to_list()
             # aux = pd.to_datetime(aux,format="%Y-%m-%d %H:%M:%S")
             # generamos la columna temporal
             temporalRanges = list()
@@ -265,10 +269,14 @@ def balanceTemporal():
                         uniqueIdTemporal.add(y)
                         break
                     
-            loggerError.error('Temporalid total {} {}'.format(len(temporalId), len(aux)))
+            # loggerError.error('Temporalid total {} {}'.format(len(temporalId), len(aux)))
             # df['Temporal'] = temporalRanges
-            df['TemporalId'] = temporalId
-            df.to_csv('.{}/{}/{}'.format(sourcePath, nodeManager.getID(), sources[pos]), index=False)
+            df["TemporalId"] = temporalId
+            # condicion cuando es worker o manager
+            if (nodeManager.getID == "-"):
+                df.to_csv('.{}/{}'.format(sourcePath, sources[pos]), index=False)
+            else:
+                df.to_csv('.{}/{}/{}'.format(sourcePath, state['nodeId'], sources[pos]), index=False)
         # toBalanceData = mtd.readColumnsToBalance(fuentes=sources, variable_to_balance=variablesToBalance) # Extramos los valores unicos de cada fuente
         
     else:
@@ -278,7 +286,6 @@ def balanceTemporal():
     workersCant = len(state["nodes"])
     # lista de objetos de trabajadores
     workersNodes = state["nodes"]
-    loggerError.error("Unique Temporal {}".format(uniqueIdTemporal))
     # inicialzar las cajas correspondientes a cada trabajador
     initWorkres = mtd.initWorkresArray(workersCant)
     # Divide las cargas entre los n workers
@@ -301,24 +308,26 @@ def balanceTemporal():
         cont = 0
         for src in range(len(sources)):
             loggerInfo.info(balanceData[worker])
+            # Leemos el archivo a Distribuir
+            if (nodeManager.getID()=="-"):
+                df = pd.read_csv('.{}/{}'.format(sourcePath,sourcesActual[src]))
+            else:
+                df = pd.read_csv('.{}/{}/{}'.format(sourcePath,state['nodeId'],sourcesActual[src]))
+                
+            #  Recorremos los valores que les toca al nodo 
             for temporalValue in balanceData[worker]:
-                if (nodeManager.getID()=="-"):
-                    df = pd.read_csv('.{}/{}'.format(sourcePath,sourcesActual[src]))
-                else:
-                    df = pd.read_csv('.{}/{}/{}'.format(sourcePath,nodeManager['nodeId'],sourcesActual[src]))
-
-            # df = pd.read_csv('.{}/{}'.format(sourcePath,sources[src]))
-            # Solo seleccionamos las filas que correspondan a su balanceo
+                # Solo seleccionamos las filas que correspondan a su balanceo
+                loggerError.error('Temporal {}'.format(df.columns))
                 dfRows = df[df['TemporalId'].isin([temporalValue])]
-            # app.logger.info(rows_df.shape)
-            # app.logger.info(balanceos_send[x])
-            # Guardamos el nombre del nuevo archivo a leer
+                # app.logger.info(rows_df.shape)
+                # app.logger.info(balanceos_send[x])
+                # Guardamos el nombre del nuevo archivo a leer
                 nameFileNew ='temp_{}_{}'.format(temporalRanges[cont],sources[src])
                 cont = cont + 1
                 sourcesNewList.append(nameFileNew)
-            # Creamos el archivo nuevo
+                # Creamos el archivo nuevo
                 dfRows.to_csv('.{}/{}/{}'.format(sourcePath, state['nodeId'], nameFileNew),index = False)
-            # Actualizamos el arreglo de fuentes a enviar
+                # Actualizamos el arreglo de fuentes a enviar
         jsonSend["SOURCES"] = sourcesNewList
         # url = 'http://'+nodes[x]+':'+str(port)+'/get_data'
         # t = threading.Thread(target=send_msj, args=(url,send_json))

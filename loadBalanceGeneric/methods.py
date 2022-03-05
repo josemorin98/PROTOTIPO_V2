@@ -168,10 +168,10 @@ def defColumnDate(fuentes,variables_to_date,inicio,fin):
 
 def generateStringDate(tipo,inicio,fin):
     if(tipo=='anio'):
-        return inicio.strftime("%Y") + ' - ' + fin.strftime("%Y")
+        return inicio.strftime("%Y") + '_' + fin.strftime("%Y")
     # division por meses
     elif(tipo=='mes'):
-        return inicio.strftime("%B/%Y") + ' - ' + fin.strftime("%B/%Y")
+        return inicio.strftime("%B/%Y") + '_' + fin.strftime("%B/%Y")
     # division por dias
     elif(tipo=='dia'):
-        return inicio.strftime("%d/%m/%Y") + ' - ' + fin.strftime("%d/%m/%Y")
+        return inicio.strftime("%d/%m/%Y") + '_' + fin.strftime("%d/%m/%Y")

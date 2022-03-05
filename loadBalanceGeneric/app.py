@@ -11,6 +11,7 @@ import node as node
 import logging
 import requests
 import pandas as pd
+import numpy as np
 
 app = Flask(__name__)
 app.debug = True
@@ -249,7 +250,6 @@ def balanceTemporal():
                 df = pd.read_csv('.{}/{}/{}'.format(sourcePath,nodeManager.getID(),sources[pos]))
             # obtenemos la cloumna fecha
             varaibleSource = variablesToBalance[pos]
-            loggerError.error("VariableSource {}".format(varaibleSource))
             aux = df[varaibleSource].to_list()
             # aux = pd.to_datetime(aux,format="%Y-%m-%d %H:%M:%S")
             # generamos la columna temporal
@@ -301,32 +301,31 @@ def balanceTemporal():
     # actualizamos los balanceos      
     del jsonSend["BALANCE"][0]
     threads = list()
+    loggerError.error("len ranges {}".format(len(temporalRanges)))
+    temporalRangesU = np.unique(temporalRanges)
     for worker in range(workersCant):
         sourcesNewList = list()
         sourcesActual = message["SOURCES"]
         # leemos los archivos
         cont = 0
         for src in range(len(sources)):
-            loggerInfo.info(balanceData[worker])
             # Leemos el archivo a Distribuir
-            if (nodeManager.getID()=="-"):
-                df = pd.read_csv('.{}/{}'.format(sourcePath,sourcesActual[src]))
-            else:
-                df = pd.read_csv('.{}/{}/{}'.format(sourcePath,state['nodeId'],sourcesActual[src]))
+            sourceName = sourcesActual[src]
+            df_p = pd.read_csv('.{}/{}/{}'.format(sourcePath,state['nodeId'],sourceName))
                 
             #  Recorremos los valores que les toca al nodo 
             for temporalValue in balanceData[worker]:
                 # Solo seleccionamos las filas que correspondan a su balanceo
-                loggerError.error('Temporal {}'.format(df.columns))
-                dfRows = df[df['TemporalId'].isin([temporalValue])]
+                dfRows = df_p[df_p['TemporalId']==temporalValue]
                 # app.logger.info(rows_df.shape)
                 # app.logger.info(balanceos_send[x])
                 # Guardamos el nombre del nuevo archivo a leer
-                nameFileNew ='temp_{}_{}'.format(temporalRanges[cont],sources[src])
+                nameFileNew ='temp_{}.csv'.format(temporalRanges[temporalValue])
                 cont = cont + 1
                 sourcesNewList.append(nameFileNew)
                 # Creamos el archivo nuevo
-                dfRows.to_csv('.{}/{}/{}'.format(sourcePath, state['nodeId'], nameFileNew),index = False)
+                directoryCSV = ".{}/{}/{}".format(sourcePath, state["nodeId"], nameFileNew) 
+                dfRows.to_csv(directoryCSV,index = False)
                 # Actualizamos el arreglo de fuentes a enviar
         jsonSend["SOURCES"] = sourcesNewList
         # url = 'http://'+nodes[x]+':'+str(port)+'/get_data'

@@ -115,18 +115,21 @@ def enviar_datos(url,jsonSend):
 # balanceo
 @app.route('/balance/espatial',methods = ['POST'])
 def balanceEspatial():
-    # global ip
+    
     global state
     global nodeManager
 
     nodes = state['nodes']
     # Recibe los datos
     message = request.get_json()
+    # ARRIVAL_TIME EXIT_TIME_MANAGER ---------------------
+    arrivalTime = time.time()
+    exitTimeManager = message['EXIT_TIME']
+    # ----------------------------------------------------
     # recibimos el tipo de balanceo
     balanceType = message["BALANCE"][0]
     # Si es file o fuentes (se balanceara por archivos)
     # leeremos los archivos
-    timeStartBalance = time.time()
     if(balanceType == "SOURCES"):
         # Arreglo de fuentes
         toBalanceData = message["SOURCES"]
@@ -167,9 +170,8 @@ def balanceEspatial():
             jsonSend["SOURCES"] = balanceData[x]
             url = workersNodes[x].getURL(mode=modeToSend,endPoint=endPoint)
             # loggerError.error('URL {} {}'.format(url,len(balanceData)))
-            timeEndBalance = time.time()
-            initService = time.time()
-            jsonSend['TIME_S'] = initService
+            exitTime = time.time()
+            jsonSend['EXIT_TIME'] = exitTime
             t = threading.Thread(target=enviar_datos, args=(url,jsonSend))
             # url = 'http://'+nodes[x]+':'+str(port)+'/get_data'
             # t = threading.Thread(target=send_msj, args=(url,send_json))
@@ -203,20 +205,18 @@ def balanceEspatial():
                         loggerError.error(espatialValue)
             # Actualizamos el arreglo de fuentes a enviar
             jsonSend["SOURCES"] = sourcesNewList
-            url = workersNodes[worker].getURL(mode=modeToSend,
-                                            endPoint=endPoint)
-            # loggerError.error('URL {}'.format(url))
-            loggerError.error('URL {}'.format(url))
-            timeEndBalance = time.time()
-            initService = time.time()
-            jsonSend['TIME_S'] = initService
+            url = workersNodes[worker].getURL(mode=modeToSend,endPoint=endPoint)
+            exitTime = time.time()
+            jsonSend['EXIT_TIME'] = exitTime
             t = threading.Thread(target=enviar_datos, args=(url,jsonSend))
             threadsList.append(t)
             t.start()
-    for th in threadsList:
-        th.join()
-    
-    loggerInfo.info('BALANCE_ESPATIAL {} {}'.format(balanceType, (timeEndBalance-timeStartBalance)))
+
+    # LOGGER ------------------------------------------------
+    serviceTime = exitTime-arrivalTime
+    latenceTime = arrivalTime-exitTimeManager
+    # OPERATION TYPE_BLANCER TIME_SERVICE ARRIVAL_TIME EXIT_TIME LATENCIE_TIME
+    loggerInfo.info('BALANCE_ESPATIAL {} {} {} {} {}'.format(balanceType, serviceTime, arrivalTime, exitTime, latenceTime))
 
     return jsonify({'DATA':'Termino'})
 
@@ -226,13 +226,17 @@ def balanceTemporal():
     global nodeManager
     # Recibe los datos
     message = request.get_json()
+    
+    # ARRIVAL_TIME EXIT_TIME_MANAGER ---------------------
+    arrivalTime = time.time()
+    exitTimeManager = message['EXIT_TIME']
+    # ----------------------------------------------------
+    
     # recibimos el tipo de balanceo
     balanceType = message["BALANCE"][0]
-    # app.logger.info(balanceo)
-
-    # balanceData = list()
     # Si selecciona temporal, se balanceara por temporal de acuerdo a las fuentes
-    timeStartBalance = time.time()
+    initServiceTime = time.time()
+    
     if(balanceType == 'TEMPORAL'):
         sources = message["SOURCES"] # Seleccionamos las fuentes
         variablesToBalance = message["TEMPORAL"] # Selecionamos las columnas de balanceo de cada archivo
@@ -300,8 +304,11 @@ def balanceTemporal():
     # mandamos a cada trabajador lo que le corresponde
     # actualizamos los balanceos      
     del jsonSend["BALANCE"][0]
+    # Configuracion para enviar
+    modeToSend = state["mode"]
+    endPoint = jsonSend["PIPELINE"][0]
+    # array de hilos
     threads = list()
-    loggerError.error("len ranges {}".format(len(temporalRanges)))
     temporalRangesU = np.unique(temporalRanges)
     for worker in range(workersCant):
         sourcesNewList = list()
@@ -320,23 +327,30 @@ def balanceTemporal():
                 # app.logger.info(rows_df.shape)
                 # app.logger.info(balanceos_send[x])
                 # Guardamos el nombre del nuevo archivo a leer
-                nameFileNew ='temp_{}.csv'.format(temporalRanges[temporalValue])
+                nameFileNew ='temp_{}.csv'.format(temporalRangesU[temporalValue])
                 cont = cont + 1
                 sourcesNewList.append(nameFileNew)
                 # Creamos el archivo nuevo
                 directoryCSV = ".{}/{}/{}".format(sourcePath, state["nodeId"], nameFileNew) 
                 dfRows.to_csv(directoryCSV,index = False)
-                # Actualizamos el arreglo de fuentes a enviar
+        # Actualizamos el arreglo de fuentes a enviar
         jsonSend["SOURCES"] = sourcesNewList
-        # url = 'http://'+nodes[x]+':'+str(port)+'/get_data'
-        # t = threading.Thread(target=send_msj, args=(url,send_json))
-        # threads.append(t)
-        # t.start() 
+        #  URL destino
+        url = workersNodes[worker].getURL(mode=modeToSend,endPoint=endPoint)
+        # tiempo de salida
+        exitTime = time.time()
+        jsonSend['EXIT_TIME'] = exitTime
+        # enviamos
+        t = threading.Thread(target=enviar_datos, args=(url,jsonSend))
+        threads.append(t)
+        t.start() 
     
-    # for th in threads:
-    #     th.join()
-    timeEndBalance = time.time()
-    loggerInfo.info('BALANCE_ESPATIAL {} {}'.format(balanceType, (timeEndBalance-timeStartBalance)))
+    # LOGGER ------------------------------------------------
+    serviceTime = exitTime-arrivalTime
+    latenceTime = arrivalTime-exitTimeManager
+    # OPERATION TYPE_BLANCER TIME_SERVICE ARRIVAL_TIME EXIT_TIME LATENCIE_TIME
+    loggerInfo.info('BALANCE_ESPATIAL {} {} {} {} {}'.format(balanceType, serviceTime, arrivalTime, exitTime, latenceTime))
+
     return jsonify({'DATA':'Termino'})
  
 

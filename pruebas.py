@@ -33,6 +33,7 @@
 #         balanceData = mtd.RaoundRobinV2(cargas=initWorkers, traza=indexlist)
 import json
 import requests
+import time
 
 headers = {'PRIVATE-TOKEN': '<your_access_token>', 'Content-Type':'application/json'}
 # Envio al conquer el bak
@@ -58,7 +59,7 @@ data_file = {
     "TYPE_ESPATIAL":"STATE",
     "TEMPORAL":["anio_ocur"], #col,range,cant
     "TYPE_TEMPORAL":["anio",1],
-    "BALANCE":["TEMPORAL","ESPACIAL"],
+    "BALANCE":["TEMPORAL","ESPATIAL"],
     "PARAMS":[
         # {
         #     "K":[3,4,5],
@@ -74,17 +75,21 @@ data_file = {
             "VARS":[['anio_ocur','TasaD','causasuic']]
         }
            ],
-    "PIPELINE":["balance/espatial"]
+    "PIPELINE":["balance/espatial"],
+    "EXIT_TIME":time.time()
  }
 
 print('sending')
 
-ip = "148.247.204.165"
+ip_cinves = "148.247.204.165"
+ip_neg = "192.168.1.77"
+ip_home = "192.168.0.16"
 
-url = "http://{}:5454/balance/temporal".format(ip) # Negocio
+url = "http://{}:5454/balance/temporal".format(ip_home) # Negocio
 # url = 'http://192.168.1.73:5000/analytics/clustering'
 # url = 'http://192.168.0.16:4001/get_datos'
 # url = 'http://localhost:5000/get_data'
+print(url)
 req = requests.post(url,data=json.dumps(data_file), headers=headers)
 
 

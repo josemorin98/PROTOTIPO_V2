@@ -118,8 +118,6 @@ def toBalanceData(initWorkers,balanceData,algorithm):
         balancedData = RaoundRobinV2(cargas=initWorkers, traza=balanceData)
     elif (algorithm=='TC'):
         balancedData = TwoChoicesV2(cargas=initWorkers, traza=balanceData)
-    # elif (algorithm=='TCR'):
-    #     balancedData, state = TwoChoicesV3(cargas=initWorkers, traza=balanceData, nameFile=nameFile, sourcePath=sourcePath)
     elif (algorithm=='PR'):
         balancedData = PseudoRandomV2(cargas=initWorkers, traza=balanceData)
     return balancedData
@@ -147,13 +145,13 @@ def generateRangos(inicio, fin, tipo, n):
     rangos = list()
     # division por anos
     if(tipo=='anio'):
-        rangos = pd.date_range(start=str_date(inicio), end=str_date(fin), freq=str(n)+'Y', closed='left').to_pydatetime()
+        rangos = pd.date_range(start=str_date(inicio), end=str_date(fin), freq=str(n)+'Y', closed='right').to_pydatetime()
     # division por meses
     elif(tipo=='mes'):
-        rangos = pd.date_range(start=str_date(inicio), end=str_date(fin), freq=str(n)+'M', closed='left').to_pydatetime()
+        rangos = pd.date_range(start=str_date(inicio), end=str_date(fin), freq=str(n)+'M', closed='right').to_pydatetime()
     # division por dias
     elif(tipo=='dia'):
-        rangos = pd.date_range(start=str_date(inicio), end=str_date(fin), freq=str(n)+'D', closed='left').to_pydatetime()
+        rangos = pd.date_range(start=str_date(inicio), end=str_date(fin), freq=str(n)+'D', closed='right').to_pydatetime()
     return rangos
 
 # Funcion que nos ayudara aseparar las fechas como el usurario indique

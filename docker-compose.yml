@@ -1,6 +1,20 @@
 version: '3'
 services:
-
+  test:
+    image: jmorin98/test
+    hostname: test
+    environment:
+      NODE_ID: lb_generic_esp_1
+      LOGS_PATH: /logs
+      NODE_PORT: 5000
+    
+    volumes:
+      - /test/prototipoTest/logs:/app/data/logs
+    networks:
+      - proto_net
+    ports:
+      - 4999:5000
+      
   lb_generic_esp_0:
     image: jmorin98/loadbalancer
     hostname: lb_generic_esp_1
@@ -15,9 +29,6 @@ services:
       PRESENTATION: 0
       SOURCE_PATH: /data
       LOGS_PATH: /logs
-    # build:
-    #   context: ./lb_generic
-    #   dockerfile: ./Dockerfile
     volumes:
       - /test/prototipoTest/:/app/data/
       - /test/prototipoTest/logs:/app/data/logs

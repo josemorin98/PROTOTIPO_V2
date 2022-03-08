@@ -38,16 +38,16 @@ import time
 headers = {'PRIVATE-TOKEN': '<your_access_token>', 'Content-Type':'application/json'}
 # Envio al conquer el bak
 # 'fuentes':['IRS_mpios_2000.csv','IRS_mpios_2005.csv','IRS_mpios_2010.csv','IRS_mpios_2015.csv','IRS_mpios_2020.csv'],
-vars = ['nombre_ent','nombre_mun',
-        'poblacion_total','porc_pob_mas15_analfab','porc_pob_6_14_sin_asistir_esc',
-        'porc_pob_mas_15_basica_inc','porc_pob_sin_dere_serv_sal','porc_viv_piso_tierra','por_viv:_sin_excusado',
-        'por_viv_sin_agu_entubada','porc_viv_sin_drenaje','porc_viv_sin_electricidad','por_viv_sin_lavadora',
-        'porc_viv_sin_refri','indice_rezago_social','grado_rezago_social','año','fecha']#,'Latitud','Longitud']
+# vars = ['nombre_ent','nombre_mun',
+#         'poblacion_total','porc_pob_mas15_analfab','porc_pob_6_14_sin_asistir_esc',
+#         'porc_pob_mas_15_basica_inc','porc_pob_sin_dere_serv_sal','porc_viv_piso_tierra','por_viv:_sin_excusado',
+#         'por_viv_sin_agu_entubada','porc_viv_sin_drenaje','porc_viv_sin_electricidad','por_viv_sin_lavadora',
+#         'porc_viv_sin_refri','indice_rezago_social','grado_rezago_social','año','fecha']#,'Latitud','Longitud']
 
-vars_clus = ['porc_pob_mas15_analfab','porc_pob_6_14_sin_asistir_esc',
-'porc_pob_mas_15_basica_inc','porc_pob_sin_dere_serv_sal','porc_viv_piso_tierra','por_viv:_sin_excusado',
-'por_viv_sin_agu_entubada','porc_viv_sin_drenaje','porc_viv_sin_electricidad','por_viv_sin_lavadora',
-'porc_viv_sin_refri','indice_rezago_social']
+# vars_clus = ['porc_pob_mas15_analfab','porc_pob_6_14_sin_asistir_esc',
+# 'porc_pob_mas_15_basica_inc','porc_pob_sin_dere_serv_sal','porc_viv_piso_tierra','por_viv:_sin_excusado',
+# 'por_viv_sin_agu_entubada','porc_viv_sin_drenaje','porc_viv_sin_electricidad','por_viv_sin_lavadora',
+# 'porc_viv_sin_refri','indice_rezago_social']
 
 
 
@@ -81,14 +81,12 @@ ip_cinves = "148.247.204.165"
 ip_neg = "192.168.1.77"
 ip_home = "192.168.0.16"
 ip_gama = "148.247.202.73"
-url = "http://{}:5454/balance/function".format(ip_gama) # Negocio
-# url = 'http://192.168.1.73:5000/analytics/clustering'
-# url = 'http://192.168.0.16:4001/get_datos'
-# url = 'http://localhost:5000/get_data'
+
+url = "http://{}:4999/test".format(ip_gama) # Negocio
+
 print(url)
 
-req = requests.post(url,data=json.dumps(data_file), headers=headers)
-
-
-# datos = req.json()
-# print(datos)
+for x in range(31):
+    req = requests.get(url, headers=headers)
+    datos = req.json()
+    time.sleep(30)

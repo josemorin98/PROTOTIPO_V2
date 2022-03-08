@@ -130,7 +130,7 @@ def presentation():
     return "OK"
 
 # -------------------------------- Carga de Trabajo -----------------------------------
-def clusterExec(kValues,clusterTypes,sourceData,clusterVariables,nodeId,silhouette,arrivalTime, exitTimeManager,src):
+def clusterExec(kValues,clusterTypes,sourceData,clusterVariables,nodeId,silhouette,arrivalTime, exitTimeManager,src, nameSource):
     # app.logger.error(k_)
     data_p =sourceData[clusterVariables]
     for type in clusterTypes:
@@ -143,21 +143,21 @@ def clusterExec(kValues,clusterTypes,sourceData,clusterVariables,nodeId,silhouet
                                         data=data_p,
                                         loggerError=loggerError,
                                         loggerInfo=loggerInfo,
-                                        arrivalTime=arrivalTime, exitTimeManager=exitTimeManager)
+                                        arrivalTime=arrivalTime, exitTimeManager=exitTimeManager, nameSource=nameSource)
                 clusterName="Kmeans"
             elif (type=="GM"):
                 k_labels = mtd.MixtureModel(k=k,
                                         data=data_p,
                                         loggerError=loggerError,
                                         loggerInfo=loggerInfo,
-                                        arrivalTime=arrivalTime, exitTimeManager=exitTimeManager)
+                                        arrivalTime=arrivalTime, exitTimeManager=exitTimeManager, nameSource=nameSource)
                 clusterName="GaussianMixture"
             else:
                 k_labels = mtd.K_means(k=k,
                                         data=data_p,
                                         loggerError=loggerError,
                                         loggerInfo=loggerInfo,
-                                        arrivalTime=arrivalTime, exitTimeManager=exitTimeManager)
+                                        arrivalTime=arrivalTime, exitTimeManager=exitTimeManager,nameSource=nameSource)
                 clusterName="Kmeans"
             # save resultaas
             data_p['clase']=k_labels

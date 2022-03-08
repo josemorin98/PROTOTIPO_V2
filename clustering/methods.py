@@ -20,7 +20,7 @@ def trueOrFalse(val):
         return False
         
 # Clustering-------------------------
-def K_means(k,data,loggerInfo,loggerError, arrivalTime, exitTimeManager):
+def K_means(k,data,loggerInfo,loggerError, arrivalTime, exitTimeManager, nameSource):
     # X_clima = data_clima.iloc[:,[7,8,9,10]]
     try:
         kmeans = KMeans(n_clusters=k).fit(data)
@@ -30,7 +30,8 @@ def K_means(k,data,loggerInfo,loggerError, arrivalTime, exitTimeManager):
         latenceTime = arrivalTime-exitTimeManager
         # loggerInfo.info('CLUSTERING_DONE KMEANS {} {}'.format((endTime-startTime), k))
         exitTime = time.time()
-        loggerInfo.info('CLUSTERING_DONE KMEANS {} {} {} {} {}'.format(k, serviceTime, arrivalTime, exitTime, latenceTime))
+        # cant name
+        loggerInfo.info('CLUSTERING_DONE KMEANS {} {} {} {} {} {}'.format(k, serviceTime, arrivalTime, exitTime, latenceTime, data.shape[0], nameSource))
         return labels
     except Exception:
         loggerError.error("CLUSETRING_FAILED KMEANS")
@@ -80,7 +81,7 @@ def plotingSilhouete(scoreSil,algo,sourcePath,loggerInfo,loggerError,nodeId, arr
         return 'NO OK'
     
 
-def MixtureModel(k,data,loggerInfo,loggerError, arrivalTime, exitTimeManager):
+def MixtureModel(k,data,loggerInfo,loggerError, arrivalTime, exitTimeManager, nameSource):
     try:
         startTime = time.time()
         modelo_gmm = GaussianMixture(
@@ -93,7 +94,7 @@ def MixtureModel(k,data,loggerInfo,loggerError, arrivalTime, exitTimeManager):
         serviceTime = (endTime-startTime)
         latenceTime = arrivalTime-exitTimeManager
         exitTime = time.time()
-        loggerInfo.info('CLUSTERING_DONE GM {} {} {} {} {}'.format(k, serviceTime, arrivalTime, exitTime, latenceTime))
+        loggerInfo.info('CLUSTERING_DONE GM {} {} {} {} {} {}'.format(k, serviceTime, arrivalTime, exitTime, latenceTime, data.shape[0], nameSource))
         return labels
     except Exception:
         loggerError.error("CLUSETRING_FAILED GM")

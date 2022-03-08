@@ -273,7 +273,7 @@ def balanceEspatial():
         serviceTime = exitTime-arrivalTime
         latenceTime = arrivalTime-exitTimeManager
         # OPERATION TYPE_BLANCER TIME_SERVICE ARRIVAL_TIME EXIT_TIME LATENCIE_TIME
-        loggerInfo.info('BALANCE_ESPATIAL {} {} {} {} {}'.format(typeBalanceEspatial, serviceTime, arrivalTime, exitTime, latenceTime))
+        loggerInfo.info('BALANCE_ESPATIAL {} {} {} {} {} {}'.format(typeBalanceEspatial, serviceTime, arrivalTime, exitTime, latenceTime, nodeId))
 
         jsonReturn ={
             "RESPONSE_STATUS": "SUCCESSFULLY",
@@ -487,7 +487,7 @@ def balanceTemporal():
         serviceTime = exitTime-arrivalTime
         latenceTime = arrivalTime-exitTimeManager
         # OPERATION TYPE_BLANCER TIME_SERVICE ARRIVAL_TIME EXIT_TIME LATENCIE_TIME
-        loggerInfo.info('BALANCE_TEMPORAL {} {} {} {} {}'.format(balanceType, serviceTime, arrivalTime, exitTime, latenceTime))
+        loggerInfo.info('BALANCE_TEMPORAL {} {} {} {} {} {}'.format(balanceType, serviceTime, arrivalTime, exitTime, latenceTime, nodeId))
         # JSON RETURN
         jsonReturn ={
             "RETURN": "SUCCESSFULLY",
@@ -660,7 +660,7 @@ def balanceZ():
         serviceTime = exitTime-arrivalTime
         latenceTime = arrivalTime-exitTimeManager
         # OPERATION TYPE_BLANCER TIME_SERVICE ARRIVAL_TIME EXIT_TIME LATENCIE_TIME
-        loggerInfo.info('BALANCE_TEMPORAL {} {} {} {} {}'.format(balanceType, serviceTime, arrivalTime, exitTime, latenceTime))
+        loggerInfo.info('BALANCE_Z {} {} {} {} {} {}'.format(balanceType, serviceTime, arrivalTime, exitTime, latenceTime, nodeId))
         # JSON RETURN
         jsonReturn ={
             "RETURN": "SUCCESSFULLY",

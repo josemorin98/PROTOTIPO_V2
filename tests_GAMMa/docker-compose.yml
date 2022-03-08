@@ -1,12 +1,12 @@
 version: '3'
 services:
 
-  lb_generic_esp_0:
+  lb_generic_z_0:
     image: jmorin98/loadbalancer
-    hostname: lb_generic_esp_1
+    hostname: lb_generic_z_0
     environment:
 
-      NODE_ID: lb_generic_esp_1
+      NODE_ID: lb_generic_z_0
       ALGORITHM: RR
       IP: '127.0.0.1'
       PUBLIC_PORT: 5454
@@ -19,8 +19,8 @@ services:
     #   context: ./lb_generic
     #   dockerfile: ./Dockerfile
     volumes:
-      - /test/prototipoTest/:/app/data/
-      - /test/prototipoTest/logs:/app/data/logs
+      - /home/jmorin/:/app/data/
+      - /home/jmorin/logs:/app/data/logs
     networks:
       - proto_net
     ports:
@@ -39,7 +39,7 @@ services:
       SOURCE_PATH: /data
       LOGS_PATH: /logs
 
-      NODE_ID_MANAGER: lb_generic_esp_1
+      NODE_ID_MANAGER: lb_generic_z_0
       IP_MANAGER: '127.0.0.1'
       PUBILC_PORT_MANAGER: 5454
       DOCKER_PORT_MANAGER: 5000
@@ -53,8 +53,8 @@ services:
     #   context: ./workerGeneric
     #   dockerfile: ./Dockerfile
     volumes:
-      - /test/prototipoTest/:/app/data/
-      - /test/prototipoTest/logs/:/app/data/logs
+      - /home/jmorin/:/app/data/
+      - /home/jmorin/logs/:/app/data/logs
     networks:
       - proto_net
     ports:
@@ -83,8 +83,8 @@ services:
       # PUBILC_PORT_SINK: 5455
       # DOCKER_PORT_SINK: 5000
     volumes:
-      - /test/prototipoTest/:/app/data/
-      - /test/prototipoTest/logs/:/app/data/logs
+      - /home/jmorin/:/app/data/
+      - /home/jmorin/logs/:/app/data/logs
     networks:
       - proto_net
     ports:

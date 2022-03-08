@@ -49,12 +49,18 @@ hdlr_2.setFormatter(formatter)
 loggerError.setLevel(logging.ERROR)
 loggerError.addHandler(hdlr_2)
 loggerError.addHandler(console)
+
+# creamos la carpeta
+if (not os.path.exists(".{}/{}".format(sourcePath,nodeId))):
+    os.mkdir(".{}/{}".format(sourcePath,nodeId))
+
 # Cambiar a variables de entorno
 state = { 'nodeId': nodeId,
             'ip': os.environ.get('IP','127.0.0.1'),
             'publicPort': os.environ.get('PUBLIC_PORT',5000),
             'dockerPort': os.environ.get('DOCKER_PORT',5000),
-            'mode': os.environ.get('MODE','DOCKER')}
+            'mode': os.environ.get('MODE','DOCKER'),
+            "events":0}
 
 # Save manager node info
 nodeInfoManager = {'nodeId': os.environ.get('NODE_ID_MANAGER',''),
@@ -71,6 +77,10 @@ nodeInfoSink = {'nodeId': os.environ.get('NODE_ID_SINK',''),
             'dockerPort': os.environ.get('DOCKER_PORT_SINK',5000)}
 nodeSink = NodeWorker(**nodeInfoSink)
 
+
+tableState = {"numEvents":0,
+            "nodeID":nodeId,
+            "events":[]}
 
 # GET ALL NODES WORKERS
 @app.route('/orchestrators', methods = ['GET'])
@@ -120,7 +130,7 @@ def presentation():
     return "OK"
 
 # -------------------------------- Carga de Trabajo -----------------------------------
-def clusterExec(kValues,clusterTypes,sourceData,clusterVariables,nameSource,nodeId,silhouette):
+def clusterExec(kValues,clusterTypes,sourceData,clusterVariables,nodeId,silhouette,arrivalTime, exitTimeManager,src):
     # app.logger.error(k_)
     data_p =sourceData[clusterVariables]
     for type in clusterTypes:
@@ -132,38 +142,50 @@ def clusterExec(kValues,clusterTypes,sourceData,clusterVariables,nameSource,node
                 k_labels = mtd.K_means(k=k,
                                         data=data_p,
                                         loggerError=loggerError,
-                                        loggerInfo=loggerInfo)
+                                        loggerInfo=loggerInfo,
+                                        arrivalTime=arrivalTime, exitTimeManager=exitTimeManager)
                 clusterName="Kmeans"
             elif (type=="GM"):
                 k_labels = mtd.MixtureModel(k=k,
                                         data=data_p,
                                         loggerError=loggerError,
-                                        loggerInfo=loggerInfo)
+                                        loggerInfo=loggerInfo,
+                                        arrivalTime=arrivalTime, exitTimeManager=exitTimeManager)
                 clusterName="GaussianMixture"
             else:
                 k_labels = mtd.K_means(k=k,
                                         data=data_p,
                                         loggerError=loggerError,
-                                        loggerInfo=loggerInfo)
+                                        loggerInfo=loggerInfo,
+                                        arrivalTime=arrivalTime, exitTimeManager=exitTimeManager)
                 clusterName="Kmeans"
             # save resultaas
             data_p['clase']=k_labels
             
-            nameSourceNew =  "{}_{}_K{}_{}.csv".format(nodeId,nameSource[:-4],k,type)
+            nameSourceNew =  "{}_K{}_{}_{}.csv".format(nodeId,k,type,src)
             
             #"Clus_"+name+"_DataClust_K="+str(k)+"_"+str(cluster)+".csv"
-            pathSave = ".{}/{}".format(sourcePath,nameSourceNew)
+            # "{}/{}/{}".format(sourcePath, state['nodeId'], nameFileNew)
+            if (not os.path.exists(".{}/{}/K{}".format(sourcePath,nodeId,k))):
+                os.mkdir(".{}/{}/K{}".format(sourcePath,nodeId,k))
+            pathSave = ".{}/{}/K{}/{}".format(sourcePath,nodeId,k,nameSourceNew)
             data_p.to_csv(pathSave, index = False)
             # data_clima.to_csv(source_folder+'/'+name_fuente)
             if (silhouette == True):
+                timeSilStart = time.time()
                 score = metrics.silhouette_score(data_p, k_labels, metric="euclidean")
                 loggerError.error('score {}'.format(score))
-                scoreSil.append( ('K{}'.format(k),score) )
+                timeSilEnd = time.time()
+                serviceSil = timeSilEnd-timeSilStart
+                scoreSil.append( ('K{}'.format(k),score,serviceSil) )
+                
         if (silhouette == True):
             mtd.plotingSilhouete(scoreSil=scoreSil,algo=clusterName,
                                     sourcePath=sourcePath,
                                     loggerError=loggerError,
-                                    loggerInfo=loggerInfo,nodeId=nodeId)
+                                    loggerInfo=loggerInfo,nodeId=nodeId,
+                                    arrivalTime=arrivalTime, 
+                                    exitTimeManager=exitTimeManager,src=src)
     return nameSourceNew
  
 
@@ -178,9 +200,18 @@ def enviar_datos(url,jsonSend):
 # Clustering process
 @app.route('/analytics/clustering', methods = ['POST'])
 def clustering():
-    global nodeId
+    global state
+    global nodeManager
+
     # recibimos los parametros
     message = request.get_json()
+
+    numberEvent = state["events"] # Eventos ejecutados en el nodo
+    numberEvent = numberEvent + 1 # Sumamos el evento que se ejecutara
+    # ARRIVAL_TIME EXIT_TIME_MANAGER ---------------------
+    arrivalTime = time.time()
+    exitTimeManager = message['EXIT_TIME']
+    # ----------------------------------------------------
     paramsClustering = message["PARAMS"][0]
     del message["PARAMS"][0]
     # valores de K para los clustering
@@ -201,11 +232,15 @@ def clustering():
 
     for src in range(len(sources)):
         # leemos el archivo a procesar
-        clusterData = mtd.read_CSV('.{}/{}'.format(sourcePath,sources[src]))
+        # clusterData = mtd.read_CSV('.{}/{}'.format(sourcePath,sources[src]))
+        if (nodeManager.getID()=="-"):
+            clusterData = mtd.read_CSV('.{}/{}'.format(sourcePath,sources[src]))
+        else:
+            clusterData = mtd.read_CSV('.{}/{}/{}'.format(sourcePath,nodeManager.getID(),sources[src]))
         # generamos el hilo que se ejecutara para realizar el clusering
         with ThreadPoolExecutor(max_workers=os.cpu_count()) as executor:
         # app.logger.info('executoooooor')
-            ext = executor.submit(clusterExec,kValues,clusterTypes,clusterData,clusterVariables[src],sources[src],nodeId,silhouette)
+            ext = executor.submit(clusterExec,kValues,clusterTypes,clusterData,clusterVariables[0],state['nodeId'],silhouette,arrivalTime, exitTimeManager,src)
             sourcesNew.append(ext.result())
 
     
@@ -229,8 +264,6 @@ def clustering():
             t = threading.Thread(target=enviar_datos, args=(url,jsonSend))
             threadsList.append(t)
             t.start()
-    for th in threadsList:
-        th.join()
     return "OK"
 
 if __name__ == '__main__':

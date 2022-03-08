@@ -14,8 +14,17 @@ class NodeWorker():
                                             self.publicPort,
                                             self.dockerPort)
 
-    def getURL(self,mode='DOCKER'):
+    def getURL(self,mode='DOCKER',endPoint='workers'):
         if (mode=='DOCKER'):
-            return 'http://{}:{}/workers'.format(self.nodeId,self.dockerPort)
+            return 'http://{}:{}/{}'.format(self.nodeId,self.dockerPort,endPoint)
         else:
-            return 'http://{}:{}/workers'.format(self.ip,self.publicPort)
+            return 'http://{}:{}/{}'.format(self.ip,self.publicPort,endPoint)
+    
+    def toJSON(self):
+        return  {"nodeId"    : self.nodeId,
+                "ip"         : self.ip,
+                "publicPort" : self.publicPort,
+                "dockerPort" : self.dockerPort}
+
+    def getID(self):
+        return self.nodeId

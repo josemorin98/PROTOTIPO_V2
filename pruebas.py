@@ -57,25 +57,21 @@ data_file = {
     "END":"2019-12-31 00:00:00",
     "ESPATIAL":[["nombre entidad"]],
     "TYPE_ESPATIAL":"STATE",
-    "TEMPORAL":["anio_ocur"], #col,range,cant
+    "TEMPORAL":["anio_ocur"], # col,range,cant
     "TYPE_TEMPORAL":["anio",1],
-    "BALANCE":["TEMPORAL","ESPATIAL"],
+    "Z":["causasuic"],
+    "BALANCE":["CLASS","TEMPORAL"],
     "PARAMS":[
-        # {
-        #     "K":[3,4,5],
-        #     "TYPES":['KMEANS'],
-        #     "VARS":[['count','Poblacion total',
-        #     'Poblacion masculina','Poblacion femenina',
-        #     'Total de viviendas habitadas','CVE_ENT','CVE_MUN',
-        #     'lat','lon','TasaD','causasuic_l']],
-        #     "SILHOUETTE":1
-        # },
         {
-            "NORMALIZE":'True',
-            "VARS":[['anio_ocur','TasaD','causasuic']]
-        }
-           ],
-    "PIPELINE":["balance/espatial"],
+            "K":[3,4,5],
+            "TYPES":['KMEANS'],
+            "VARS":[['count','Poblacion total',
+            'Poblacion masculina','Poblacion femenina',
+            'Total de viviendas habitadas','CVE_ENT','CVE_MUN',
+            'lat','lon','TasaD','causasuic_l']],
+            "SILHOUETTE":1
+        }],
+    "PIPELINE":["balance/temporal","analytics/clustering"],
     "EXIT_TIME":time.time()
  }
 
@@ -84,14 +80,15 @@ print('sending')
 ip_cinves = "148.247.204.165"
 ip_neg = "192.168.1.77"
 ip_home = "192.168.0.16"
-
-url = "http://{}:5454/balance/temporal".format(ip_home) # Negocio
+ip_gama = "148.247.202.73"
+url = "http://{}:5454/balance/function".format(ip_gama) # Negocio
 # url = 'http://192.168.1.73:5000/analytics/clustering'
 # url = 'http://192.168.0.16:4001/get_datos'
 # url = 'http://localhost:5000/get_data'
 print(url)
+
 req = requests.post(url,data=json.dumps(data_file), headers=headers)
 
 
-datos = req.json()
-print(datos)
+# datos = req.json()
+# print(datos)

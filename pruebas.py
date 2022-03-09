@@ -86,8 +86,8 @@ url = "http://{}:4999/test".format(ip_gama) # Negocio
 
 print(url)
 
-for x in range(30):
+for x in range(31):
     req = requests.get(url, headers=headers)
     datos = req.json()
-    print("{} - {} - {}".format(x,url,type(datos)))
+    print("{} - {} - {}".format(x,url,datos))
     time.sleep(70)

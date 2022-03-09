@@ -58,14 +58,6 @@ services:
       PUBILC_PORT_MANAGER: 5454
       DOCKER_PORT_MANAGER: 5000
       
-      # NODE_ID_SINK: clustering_0
-      # IP_SINK: '127.0.0.1'
-      # PUBILC_PORT_SINK: 5455
-      # DOCKER_PORT_SINK: 5000
-
-    # build: 
-    #   context: ./workerGeneric
-    #   dockerfile: ./Dockerfile
     volumes:
       - /test/prototipoTest/:/app/data/
       - /test/prototipoTest/logs/:/app/data/logs
@@ -98,8 +90,6 @@ services:
       - proto_net
     ports:
       - 5002:5000
-  
- 
 
 networks:
   proto_net:

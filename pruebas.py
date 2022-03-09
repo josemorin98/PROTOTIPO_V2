@@ -89,4 +89,5 @@ print(url)
 for x in range(31):
     req = requests.get(url, headers=headers)
     datos = req.json()
+    print(x)
     time.sleep(30)

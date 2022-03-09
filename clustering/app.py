@@ -160,7 +160,7 @@ def clusterExec(kValues,clusterTypes,sourceData,clusterVariables,nodeId,silhouet
                                         arrivalTime=arrivalTime, exitTimeManager=exitTimeManager,nameSource=nameSource)
                 clusterName="Kmeans"
             # save resultaas
-            data_p['clase']=k_labels
+            data_p["clase"]=k_labels
             
             nameSourceNew =  "{}_K{}_{}_{}.csv".format(nodeId,k,type,src)
             

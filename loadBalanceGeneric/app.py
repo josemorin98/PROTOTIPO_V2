@@ -92,7 +92,7 @@ def add_worker():
     # add new node
     state['nodes'].append(nodeNew)
     endTime = time.time()
-    loggerInfo.info('CREATED_NODE {} {}'.format(nodeNew.nodeId,(endTime-startTime)))
+    loggerInfo.info('CREATED_NODE {} {} 0 0 0 0'.format(nodeNew.nodeId,(endTime-startTime)))
     return jsonify({'response':"OK"})
 
 # GET ALL NODES WORKERS
@@ -132,7 +132,7 @@ def sendData(url,jsonSend,numberEvent,procesList,nodeId):
     try:
         headers = {'PRIVATE-TOKEN': '<your_access_token>', 'Content-Type':'application/json'}
         response = requests.post(url, data=json.dumps(jsonSend), headers=headers)
-        jsonResponse = response.json()
+        # jsonResponse = response.json()
         # updateStateTable(jsonRespone=jsonResponse,numberEvent=numberEvent, procesList=procesList, nodeId=nodeId)
         return "OK"
     except:
@@ -173,7 +173,7 @@ def balanceEspatial():
         toBalanceData = mtd.typeBalnceEspatial(typeBalance=typeBalanceEspatial)
     else:
         loggerError.error('BALANCER_ERROR ESPATIAL_TYPE {}'.format(state['nodeId']))
-        exitTime = time.time()
+        exitTime = time.time() # segundos
         serviceTime = exitTime-arrivalTime
         latenceTime = arrivalTime-exitTimeManager
         jsonReturn ={
@@ -725,7 +725,7 @@ def presentation():
             endTime = time.time()
             # OPERATION    TYPE_BLANCER    SERVICE_TIME    ARRIVAL_TIME    EXIT_TIME    LATENCIE_TIME
             serviceTime = endTime-startTime
-            loggerInfo.info('CONNECTION_SUCCESSFULLY PRESENTATION_SEND {} {} {} {}'.format(serviceTime, startTime, endTime, 0))
+            loggerInfo.info('CONNECTION_SUCCESSFULLY PRESENTATION_SEND {} {} {} {} 0'.format(serviceTime, startTime, endTime, 0))
             presentationValue = False
             # read json states
             break

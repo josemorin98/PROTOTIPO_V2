@@ -23,6 +23,8 @@ def trueOrFalse(val):
 def K_means(k,data,loggerInfo,loggerError, arrivalTime, exitTimeManager, nameSource):
     # X_clima = data_clima.iloc[:,[7,8,9,10]]
     try:
+        arrivalTime = time.time()
+        exitTime = time.time()
         kmeans = KMeans(n_clusters=k).fit(data)
         labels = kmeans.predict(data)
         endTime = time.time()
@@ -40,6 +42,8 @@ def K_means(k,data,loggerInfo,loggerError, arrivalTime, exitTimeManager, nameSou
 def plotingSilhouete(scoreSil,algo,sourcePath,loggerInfo,loggerError,nodeId, arrivalTime, exitTimeManager,src):
     try:
         startTime = time.time()
+        arrivalTime = time.time()
+        exitTime = time.time()
         scoreSil.sort(key=lambda x: x[1], reverse=True) # sort 
 
         cluster = list(zip(*scoreSil))[0] # labels
@@ -84,6 +88,8 @@ def plotingSilhouete(scoreSil,algo,sourcePath,loggerInfo,loggerError,nodeId, arr
 def MixtureModel(k,data,loggerInfo,loggerError, arrivalTime, exitTimeManager, nameSource):
     try:
         startTime = time.time()
+        arrivalTime = time.time()
+        exitTime = time.time()
         modelo_gmm = GaussianMixture(
                 n_components    = k,
                 covariance_type = 'full',

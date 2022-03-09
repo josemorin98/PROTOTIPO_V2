@@ -93,6 +93,7 @@ def add_worker():
     state['nodes'].append(nodeNew)
     endTime = time.time()
     loggerInfo.info('CREATED_NODE {} {} 0 0 0 0'.format(nodeNew.nodeId,(endTime-startTime)))
+    send = True
     return jsonify({'response':"OK"})
 
 # GET ALL NODES WORKERS
@@ -458,8 +459,8 @@ def balanceTemporal():
                     # app.logger.info(rows_df.shape)
                     # app.logger.info(balanceos_send[x])
                     # Guardamos el nombre del nuevo archivo a leer
-                    nameTemp = list(uniqueTemporal)[temporalValue]
-                    nameFileNew ="temp_{}.csv".format(nameTemp)
+                    nameTemp = dfRows['Temporal_String'].unique()[0]
+                    nameFileNew ="temp_{}_{}".format(nameTemp,sourceName)
                     auxList.append(nameTemp)
                     cont = cont + 1
                     sourcesNewList.append(nameFileNew)
@@ -469,7 +470,7 @@ def balanceTemporal():
                     dfRows.to_csv(directoryCSV,index = False)
 
                 procesList.append(auxList)
-                # loggerError.error("---------------------------------------------------- {}".format(df_p.shape[0]))
+                # loggerError.error("---------------------------------------------------- {}".format(len(sourcesNewList)))
             # Actualizamos el arreglo de fuentes a enviar
             jsonSend["SOURCES"] = sourcesNewList
             #  URL destino

@@ -4,7 +4,7 @@ services:
     image: jmorin98/test
     hostname: test
     environment:
-      NODE_ID: lb_generic_esp_1
+      NODE_ID: test
       LOGS_PATH: /logs
       NODE_PORT: 5000
     
@@ -15,12 +15,12 @@ services:
     ports:
       - 4999:5000
       
-  lb_generic_esp_0:
+  lb_generic_z_0:
     image: jmorin98/loadbalancer
-    hostname: lb_generic_esp_1
+    hostname: lb_generic_z_0
     environment:
 
-      NODE_ID: lb_generic_esp_1
+      NODE_ID: lb_generic_z_0
       ALGORITHM: RR
       IP: '127.0.0.1'
       PUBLIC_PORT: 5454
@@ -29,8 +29,11 @@ services:
       PRESENTATION: 0
       SOURCE_PATH: /data
       LOGS_PATH: /logs
+    # build:
+    #   context: ./lb_generic
+    #   dockerfile: ./Dockerfile
     volumes:
-      - /test/prototipoTest/:/app/data/
+      - /test/prototipoTest:/app/data/
       - /test/prototipoTest/logs:/app/data/logs
     networks:
       - proto_net
@@ -50,7 +53,7 @@ services:
       SOURCE_PATH: /data
       LOGS_PATH: /logs
 
-      NODE_ID_MANAGER: lb_generic_esp_1
+      NODE_ID_MANAGER: lb_generic_z_0
       IP_MANAGER: '127.0.0.1'
       PUBILC_PORT_MANAGER: 5454
       DOCKER_PORT_MANAGER: 5000
@@ -88,11 +91,6 @@ services:
       IP_MANAGER: '127.0.0.1'
       PUBILC_PORT_MANAGER: 5001
       DOCKER_PORT_MANAGER: 5000
-      
-      # NODE_ID_SINK: lb_generic_2
-      # IP_SINK: '127.0.0.1'
-      # PUBILC_PORT_SINK: 5455
-      # DOCKER_PORT_SINK: 5000
     volumes:
       - /test/prototipoTest/:/app/data/
       - /test/prototipoTest/logs/:/app/data/logs
@@ -100,9 +98,12 @@ services:
       - proto_net
     ports:
       - 5002:5000
+  
+ 
 
 networks:
   proto_net:
+
 
   # regression_3:
   #   image: jmorin98/regression

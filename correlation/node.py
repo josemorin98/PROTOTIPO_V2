@@ -19,3 +19,15 @@ class NodeWorker():
             return 'http://{}:{}/{}'.format(self.nodeId,self.dockerPort,endPoint)
         else:
             return 'http://{}:{}/{}'.format(self.ip,self.publicPort,endPoint)
+    
+    def toJSON(self):
+        return  {"nodeId"    : self.nodeId,
+                "ip"         : self.ip,
+                "publicPort" : self.publicPort,
+                "dockerPort" : self.dockerPort}
+
+    def getID(self):
+        return self.nodeId
+    
+    def setID(self,idNew):
+        self.nodeId = idNew

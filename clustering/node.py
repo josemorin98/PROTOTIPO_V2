@@ -28,3 +28,6 @@ class NodeWorker():
 
     def getID(self):
         return self.nodeId
+    
+    def setID(self,idNew):
+        self.nodeId = idNew

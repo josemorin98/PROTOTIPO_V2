@@ -2,6 +2,7 @@
 node_modules/
 test_Muertes/
 tests_GAMMa/
+
 # Ignore Logs
 logs
 *.log

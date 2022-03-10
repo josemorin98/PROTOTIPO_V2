@@ -4,11 +4,11 @@ from shapely.geometry import Polygon, LineString, Point
 
 
 # GeoDataFrame creation
-poly = gpd.read_file("shapefiles/municipalities/Muni_2012gw.shp")
+poly = gpd.read_file("/home/moringas/Escritorio/PROTOTIPO_V2/Espacial_files/metadata/app/shapefiles/states/Mexico_Estados.shp")
 #poly = gpd.read_file("shapefiles/states/Mexico_Estados.shp")
-poly = gpd.read_file("shapefiles/México_Ciudades")
+# poly = gpd.read_file("shapefiles/México_Ciudades")
 
-
+# /home/moringas/Escritorio/PROTOTIPO_V2/Espacial_files/metadata/app/shapefiles/states/Mexico_Estados.shp
 
 print(len(poly))
 

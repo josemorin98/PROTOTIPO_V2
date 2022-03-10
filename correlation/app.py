@@ -97,10 +97,7 @@ def add_worker():
     endTime = time.time()
     loggerInfo.info('CREATED_NODE {} {} 0 0 0 0'.format(nodeNew.nodeId,(endTime-startTime)))
     send = True
-    jsonSend = {
-        "nodeID":nodeNew.getID()
-    }
-    return jsonify(jsonSend)
+    return jsonify({"response":"Creado"})
 
 # GET ALL NODES WORKERS
 @app.route('/workers/update', methods = ['POST'])

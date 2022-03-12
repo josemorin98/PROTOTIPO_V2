@@ -82,12 +82,12 @@ ip_neg = "192.168.1.77"
 ip_home = "192.168.0.16"
 ip_gama = "148.247.202.73"
 
-url = "http://{}:4999/test".format(ip_gama) # Negocio
+url = "http://{}:4999/test".format(ip_cinves) # Negocio
 
 print(url)
 
-for x in range(31):
+for x in range(1):
     req = requests.get(url, headers=headers)
     datos = req.json()
     print("{} - {} - {}".format(x,url,datos))
-    time.sleep(70)
+    time.sleep(3)

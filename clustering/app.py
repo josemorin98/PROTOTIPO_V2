@@ -54,8 +54,11 @@ loggerError.addHandler(console)
 if (not os.path.exists(".{}/{}".format(sourcePath,nodeId))):
     os.mkdir(".{}/{}".format(sourcePath,nodeId))
 
-# Cambiar a variables de entorno
+if (not os.path.exists(".{}/{}".format(sourcePath,nodeId))):
+    os.mkdir(".{}/{}".format(sourcePath,nodeId))
+
 state = { 'nodeId': nodeId,
+            "nodes": [],
             'ip': os.environ.get('IP','127.0.0.1'),
             'publicPort': os.environ.get('PUBLIC_PORT',5000),
             'dockerPort': os.environ.get('DOCKER_PORT',5000),
@@ -68,6 +71,7 @@ nodeInfoManager = {"nodeId": os.environ.get('NODE_ID_MANAGER','-'),
             "publicPort": os.environ.get('PUBLIC_PORT_MANAGER',5000),
             "dockerPort": os.environ.get('DOCKER_PORT_MANAGER',5000)}
 nodeManager = NodeWorker(**nodeInfoManager)
+
 # Save sink node info
 nodeInfoSink = {'nodeId': os.environ.get('NODE_ID_SINK',''),
             'ip': os.environ.get('IP_SINK','127.0.0.1'),
@@ -75,13 +79,14 @@ nodeInfoSink = {'nodeId': os.environ.get('NODE_ID_SINK',''),
             'dockerPort': os.environ.get('DOCKER_PORT_SINK',5000)}
 nodeSink = NodeWorker(**nodeInfoSink)
 
+send = mtd.trueOrFalse(os.environ.get('SEND','False'))
 
 tableState = {"numEvents":0,
             "nodeID":nodeId,
             "events":[]}
 
 @app.route('/status/node', methods = ['GET'])
-def state():
+def stateN():
     global state
     return jsonify(state)
 
@@ -109,7 +114,7 @@ def add_worker():
     endTime = time.time()
     loggerInfo.info('CREATED_NODE {} {} 0 0 0 0'.format(nodeNew.nodeId,(endTime-startTime)))
     send = True
-    return jsonify({'response':"OK"})
+    return jsonify({"response":"Creado"})
 
 # GET ALL NODES WORKERS
 @app.route('/workers', methods = ['GET'])
@@ -140,7 +145,6 @@ def presentation():
     global state
     global nodeManager
     global presentationValue
-    global stateList
     # send info to manager node
     infoSend = {'nodeId': state['nodeId'],
                 'ip': state['ip'],
@@ -162,17 +166,12 @@ def presentation():
                 break
             # url destino del manager
             url = nodeManager.getURL(mode=state['mode'])
-            response =requests.post(url, data=json.dumps(infoSend), headers=headers)
-            responseJson = response.json()
+            requests.post(url, data=json.dumps(infoSend), headers=headers)
             endTime = time.time()
             # OPERATION    TYPE_BLANCER    SERVICE_TIME    ARRIVAL_TIME    EXIT_TIME    LATENCIE_TIME
             serviceTime = endTime-startTime
             loggerInfo.info('CONNECTION_SUCCESSFULLY PRESENTATION_SEND {} {} {} {} 0'.format(serviceTime, startTime, endTime, 0))
             presentationValue = False
-            # si existe es que el manager no genera un archivo de lectura
-            if("nodeID" in responseJson):
-                id_new = responseJson['nodeID']
-                nodeManager.setID(idNew=id_new)
             # read json states
             break
         except requests.ConnectionError:
@@ -187,6 +186,7 @@ def presentation():
 def clusterExec(kValues,clusterTypes,sourceData,clusterVariables,nodeId,silhouette,arrivalTime, exitTimeManager,src, nameSource):
     # app.logger.error(k_)
     data_p =sourceData[clusterVariables]
+    loggerError.error("............................................................ 4")
     for type in clusterTypes:
         scoreSil = list()
         for k in kValues:
@@ -301,27 +301,32 @@ def clustering():
         # arreglo de variables
         clusterVariables = paramsClustering["VARS"]
         # lista de nuevas fuentes
+        loggerError.error("............................................................ 1")
         if ("SILHOUETTE" in paramsClustering):
             silhouette = mtd.trueOrFalse(val=paramsClustering["SILHOUETTE"])
         else:
             silhouette = False
         # loggerError.error('SILHOUETTE {}'.format(silhouette))
         sourcesNew = list()
-
+        loggerError.error("............................................................ 2-{}".format(silhouette))
         for src in range(len(sources)):
             # leemos el archivo a procesar
             # clusterData = mtd.read_CSV('.{}/{}'.format(sourcePath,sources[src]))
+            nameSource = sources[src]
             if (nodeManager.getID()=="-"):
-                clusterData = mtd.read_CSV('.{}/{}'.format(sourcePath,sources[src]))
+                clusterData = mtd.read_CSV('.{}/{}'.format(sourcePath,nameSource))
             else:
-                clusterData = mtd.read_CSV('.{}/{}/{}'.format(sourcePath,nodeManager.getID(),sources[src]))
+                clusterData = mtd.read_CSV('.{}/{}/{}'.format(sourcePath,nodeManager.getID(),nameSource))
             # generamos el hilo que se ejecutara para realizar el clusering
+            
             with ThreadPoolExecutor(max_workers=os.cpu_count()) as executor:
             # app.logger.info('executoooooor')
-                ext = executor.submit(clusterExec,kValues,clusterTypes,clusterData,clusterVariables[0],state['nodeId'],silhouette,arrivalTime, exitTimeManager,src)
+                loggerError.error("............................................................ 3-{}".format(sources[src]))
+                ext = executor.submit(clusterExec,kValues,clusterTypes,clusterData,clusterVariables[0],state['nodeId'],silhouette,arrivalTime, exitTimeManager,src,nameSource)
                 sourcesNew.append(ext.result())
 
         exitTime = time.time()
+        loggerError.error("............................................................ 5")
         # si es verdadero enviamos
         if (send==True):
             workersCant = len(state["nodes"])

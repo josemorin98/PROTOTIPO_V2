@@ -1,6 +1,8 @@
+from cmath import nan
 import logging
 import threading
 import time
+from matplotlib.colors import LinearSegmentedColormap
 from flask import Flask, request
 from flask import jsonify
 import json
@@ -8,8 +10,8 @@ from node import NodeWorker
 import requests
 import os
 import methods as mtd
-from sklearn import metrics
-from concurrent.futures import ThreadPoolExecutor
+# from concurrent.futures import ThreadPoolExecutor
+import geopandas as gpd
 
 app = Flask(__name__)
 app.debug = True
@@ -54,8 +56,8 @@ loggerError.addHandler(console)
 if (not os.path.exists(".{}/{}".format(sourcePath,nodeId))):
     os.mkdir(".{}/{}".format(sourcePath,nodeId))
 
-# Cambiar a variables de entorno
 state = { 'nodeId': nodeId,
+            "nodes": [],
             'ip': os.environ.get('IP','127.0.0.1'),
             'publicPort': os.environ.get('PUBLIC_PORT',5000),
             'dockerPort': os.environ.get('DOCKER_PORT',5000),
@@ -81,7 +83,7 @@ tableState = {"numEvents":0,
             "events":[]}
 
 @app.route('/status/node', methods = ['GET'])
-def state():
+def stateN():
     global state
     return jsonify(state)
 
@@ -127,7 +129,6 @@ def presentation():
     global state
     global nodeManager
     global presentationValue
-    global stateList
     # send info to manager node
     infoSend = {'nodeId': state['nodeId'],
                 'ip': state['ip'],
@@ -197,7 +198,7 @@ def sendData(url,jsonSend,numberEvent,procesList,nodeId):
     
 # Clustering process
 @app.route('/analytics/map/mexico', methods = ['POST'])
-def clustering():
+def ploting():
     global state
     global nodeManager
     global send
@@ -211,21 +212,61 @@ def clustering():
         arrivalTime = time.time()
         exitTimeManager = message['EXIT_TIME']
         # ----------------------------------------------------
-        paramsMapa = message["PARAMS"][0]
-        del message["PARAMS"][0]
         # fuentes
         sources = message["SOURCES"]
         sourcesNew = list()
+
+        # geopandas de mexico "shapesfile"
+        mexicoDF = gpd.read_file("./Map_Mexico/states/Mexico_Estados.shp")
+        mexicoDF["ESTADO"]=mexicoDF["ESTADO"].replace("Distrito Federal","Ciudad de Mexico")
+
+        paramsPlot = message["PARAMS"][0]
+        del message["PARAMS"][0]
+
+        cmap = LinearSegmentedColormap.from_list('mycmap', [(0,'white'),(1,'red')])
+        
         for src in range(len(sources)):
             # leemos el archivo a procesar
             # clusterData = mtd.read_CSV('.{}/{}'.format(sourcePath,sources[src]))
+            nameSource = sources[src]
             if (nodeManager.getID()=="-"):
-                clusterData = mtd.read_CSV('.{}/{}'.format(sourcePath,sources[src]))
+                mapData = mtd.read_CSV('.{}/{}'.format(sourcePath,nameSource))
             else:
-                clusterData = mtd.read_CSV('.{}/{}/{}'.format(sourcePath,nodeManager.getID(),sources[src]))
+                mapData = mtd.read_CSV('.{}/{}/{}'.format(sourcePath,nodeManager.getID(),nameSource))
             
+            typePlot = paramsPlot["TYPE_PLOT"]
             # Aqui colocamos los mapas
-            
+            if (typePlot=="POLYGON"):
+                # si es pintar polygonos
+                typePolygon = paramsPlot["TYPE_POLYGON"]
+                comlumnData = paramsPlot['COLUMN_DATA']
+                columnPolygon = paramsPlot["COLUMN_POLYGON"]
+                # MEDIANA de la columna que tiene la clase
+                groupedMedian = mapData.groupby(columnPolygon).median()
+                uniqueClases = mapData[columnPolygon].unique()
+                if (typePolygon=="STATE"):
+                    # pintara estados
+                    # valores de los estados
+                    valuesState = list()
+                    for index, stateMx in mexicoDF.iterrows():
+                        nameState = stateMx["ESTADO"]
+                        # saber si tiene el estado dentro de la variable polygono
+                        if (nameState in groupedMedian[columnPolygon]):
+                            auxValue = groupedMedian[groupedMedian[columnPolygon]==nameState]
+                            valuesState.append(auxValue.values)
+                        else:
+                            valuesState.append(nan)
+                    # insertamos la columna con los valores
+                    mexicoDF.insert(2,column="{}".format(columnPolygon))
+                    loggerError.error(mexicoDF["{}".format(columnPolygon)])
+                    ploting = mexicoDF.plot(figsize=(15, 9), column="{}".format(columnPolygon), legend=True, 
+                                            cmap=cmap, legend_kwds={"fontsize":16,"frameon":False})
+                    # nombre del archivo
+                    nameFile = ".{}/{}/{}.png".format(sourcePath, nodeId, nameSource.replace(".csv",""))
+                    # colocamos el titulo del png
+                    ploting.set_title('{}'.format(nameSource.replace(".csv","")))
+                    ploting.figure.savefig(nameFile)
+
 
         exitTime = time.time()
         # si es verdadero enviamos

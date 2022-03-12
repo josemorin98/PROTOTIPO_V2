@@ -700,7 +700,6 @@ def presentation():
     global state
     global nodeManager
     global presentationValue
-    global stateList
     # send info to manager node
     infoSend = {'nodeId': state['nodeId'],
                 'ip': state['ip'],

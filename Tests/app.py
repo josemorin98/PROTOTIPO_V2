@@ -76,22 +76,21 @@ def test():
         "TYPE_TEMPORAL":["anio",1],
         "Z":["causasuic"],
         "BALANCE":["CLASS","TEMPORAL"],
-        "PARAMS":[{
-                "VARS": [["count","Poblacion total","Poblacion masculina",
-                        "Poblacion femenina","Total de viviendas habitadas",
-                        "CVE_ENT","CVE_MUN","TasaD","causasuic_l"]],
-                "NORMALIZE" :"True"
-             },
+        "PARAMS":[
             {
                 "K":[3,4,5],
                 "TYPES":['KMEANS'],
                 "VARS":[['count','Poblacion total',
                 'Poblacion masculina','Poblacion femenina',
-                'Total de viviendas habitadas','CVE_ENT','CVE_MUN',
-                'lat','lon','TasaD','causasuic_l']],
+                'Total de viviendas habitadas','CVE_ENT','CVE_MUN','TasaD','causasuic_l']],
                 "SILHOUETTE":1
+            },
+            {
+                "TYPE_PLOT":"POLYGON",
+                "TYPE_POLYGON":"STATE"
+                "COLUMN_POLYGON"
             }],
-        "PIPELINE":["balance/temporal","analytics/correlation"],
+        "PIPELINE":["balance/temporal","analytics/clustering","/analytics/map/mexico"],
         "EXIT_TIME":exitTime
     }
 

@@ -15,10 +15,17 @@ jsonArrive = {
 }
 
 # leeemos el shapoe de mapas
-df = gpd.read_file("./Map_Mexico/states/Mexico_Estados.shp")
-df.plot()
+mexico = gpd.read_file("./Map_Mexico/states/Mexico_Estados.shp")
 
 # leemos la fuentes
+# source = pd.read_csv("/prototipoTest/TasaD_preV3.csv")
+mexico["ESTADO"]=mexico["ESTADO"].replace("Distrito Federal","Ciudad de Mexico")
+print(mexico)
+
+# polygon or point
+# if(ploting = )
+
+
 
 # # df = pd.read_csv("/test/files/rezago/IRS_mpios_2000.csv")
 # df = pd.read_csv("/test/prototipoTest/TasaD_preV2.csv")

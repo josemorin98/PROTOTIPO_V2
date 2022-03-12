@@ -4,8 +4,8 @@ FROM python:3.8-slim-buster
 RUN pip install flask
 RUN pip install requests
 RUN pip install pandas
-RUN pip install sklearn
 RUN pip install matplotlib
+RUN pip install geopandas
 
 COPY ./ /app
 WORKDIR  /app

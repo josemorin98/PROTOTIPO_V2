@@ -1,4 +1,5 @@
 from operator import index
+import random
 import pandas as pd
 import datetime
 from hermetrics.metric_comparator import MetricComparator
@@ -15,15 +16,79 @@ jsonArrive = {
 }
 
 # leeemos el shapoe de mapas
-mexico = gpd.read_file("./Map_Mexico/states/Mexico_Estados.shp")
+# mexico = gpd.read_file("./Map_Mexico/states/Mexico_Estados.shp")
 
-# leemos la fuentes
-# source = pd.read_csv("/prototipoTest/TasaD_preV3.csv")
-mexico["ESTADO"]=mexico["ESTADO"].replace("Distrito Federal","Ciudad de Mexico")
-print(mexico)
+# # leemos la fuentes
+# # source = pd.read_csv("/prototipoTest/TasaD_preV3.csv")
+# mexico["ESTADO"]=mexico["ESTADO"].replace("Distrito Federal","Ciudad de Mexico")
+# print(mexico)
 
 # polygon or point
 # if(ploting = )
+
+def initWorkresArray(workers):
+    pet_in = []
+    for i in range(workers):
+        pet_in.append([])
+    return pet_in
+
+def TwoChoicesV3(cargas, traza, sources, sourcePath, varSpatial):
+    # df = pd.read_csv('.{}/{}'.format(sourcePath,nameFile))
+    workers = len(cargas)
+    cantWorkers = np.zeros(workers)
+    select_bin = 0
+    select_bin2 = 0
+    aux = True
+    if(workers==1):
+        # for x in range(len(traza.iloc[:,0])):
+        #     cargas[0].append(traza[0][x])
+        for x in traza:
+            cargas[0].append(x)
+    else:
+        # for x in range(len(traza.iloc[:,0])):
+        for xTraza in traza:
+            # se selecciona el primer trabajador
+            select_bin = random.randint(0, workers-1)
+            while(aux):
+                # se selecciona el segundo trabajador
+                select_bin2 = random.randint(0, workers-1)
+                # si es diferente rompe el ciclo
+                if(select_bin != select_bin2):
+                    aux = False
+            # revisamos la cantidad de registros con esa clase para cada fuente
+            cantRows=0
+            print("{} - {}".format(select_bin, select_bin2))
+            for src in sources:
+                df = pd.read_csv('{}/{}'.format(sourcePath,src))
+                # cantidad de registros
+                cantRows = cantRows + df[df[varSpatial]==xTraza].shape[0]
+            
+            if( cantWorkers[select_bin] < cantWorkers[select_bin2] ):
+                cargas[select_bin].append(xTraza)
+                cantWorkers[select_bin] = cantWorkers[select_bin]+cantRows
+            else:
+                cargas[select_bin2].append(xTraza)
+                cantWorkers[select_bin2] = cantWorkers[select_bin2]+cantRows
+            aux = True
+    print(cantWorkers)
+    print(sum(cantWorkers))
+    return cargas
+
+
+initWorkers =5
+sources = ["TasaD_preV3.csv"]
+sourcePath = "/test/prototipoTest"
+varSpatial = "causasuic"
+
+df = pd.read_csv("{}/{}".format(sourcePath, sources[0]))
+toBalanceData = df[varSpatial].unique()
+arrayWorkers = initWorkresArray(workers=initWorkers)
+
+
+print(df.shape[0])
+cargasResult = TwoChoicesV3(cargas=arrayWorkers, traza=(toBalanceData), sources=sources,sourcePath=sourcePath, varSpatial=varSpatial)
+print(cargasResult)
+
 
 
 

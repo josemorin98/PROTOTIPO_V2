@@ -161,10 +161,11 @@ def balanceEspatial():
     # recibimos el tipo de balanceo
     balanceType = message["BALANCE"][0]
     # Si es file o fuentes (se balanceara por archivos)
+    sources = message["SOURCES"]
     # leeremos los archivos
     if(balanceType == "SOURCES"):
         # Arreglo de fuentes
-        toBalanceData = message["SOURCES"]
+        toBalanceData = sources
     # Si selecciona espacial, se balanceara por espacial de acuerdo a las fuentes
     elif(balanceType == "ESPATIAL"):
         variablesToBalance = message["ESPATIAL"] # Selecionamos el tipo de balanceo ["STATE","MUN"]
@@ -197,9 +198,20 @@ def balanceEspatial():
         # inicialzar las cajas correspondientes a cada trabajador
         initWorkres = mtd.initWorkresArray(workersCant)
         # Divide las cargas entre los n workers
-        balanceData = mtd.toBalanceData(initWorkers=initWorkres,
+        algorithmBalancer= state["algorithm"]
+        if (algorithmBalancer=="TC"):
+            balanceData = mtd.toBalanceDataTC(initWorkers=initWorkres,
                                         balanceData=toBalanceData,
-                                        algorithm=state["algorithm"])
+                                        algorithm=algorithmBalancer,
+                                        sources=sources,varSpatial=variablesToBalance[src][0])
+        else:
+            balanceData = mtd.toBalanceData(initWorkers=initWorkres,
+                                        balanceData=toBalanceData,
+                                        algorithm=algorithmBalancer)
+        # ------------------------------------
+        endBalamncer = time.time()
+        balancerTime = endBalamncer - arrivalTime
+        # ------------------------------------
         # Realizamos una copia el json de enrtada
         jsonSend = message
         # Eliminamos el termino de balanceo
@@ -226,6 +238,9 @@ def balanceEspatial():
         elif(balanceType == "ESPATIAL"):
             # app.logger.info(balanceo)
             #etraemos las fuentes
+            
+            sumReadTime = 0
+            sumComunicationTime = 0
             sourcesActual = jsonSend["SOURCES"]
             # mandamos a cada trabajador lo que le corresponde
             # actualizamos los balanceos
@@ -238,11 +253,20 @@ def balanceEspatial():
                     # iteramos por espacial
                     auxList = list()
                     for espatialValue in balanceData[worker]:
-                        
+                        # ------------------------------------
+                        # read time
+                        initReadTime = time.time()
+                        # ------------------------------------
                         if (nodeManager.getID()=="-"):
                             df = pd.read_csv('.{}/{}'.format(sourcePath,sourcesActual[src]))
                         else:
                             df = pd.read_csv('.{}/{}/{}'.format(sourcePath,nodeManager.getID(),sourcesActual[src]))
+                        # ------------------------------------
+                        # end read time
+                        endReadTime = time.time()
+                        readTimeFile = (endReadTime - initReadTime)
+                        sumReadTime = sumReadTime + readTimeFile
+                        # ------------------------------------
                         # Solo seleccionamos las filas que correspondan a su balanceo
                         dfRows = df[df[variablesToBalance[src][0]].isin([espatialValue])]
                         # Guardamos el nombre del nuevo archivo a leer
@@ -256,25 +280,31 @@ def balanceEspatial():
                         else:
                             loggerError.error("BALANCER_ERROR NO_EXISTS_ESPATIAL {}".format(espatialValue))
                     procesList.append(auxList)
-                    
+                # ------------------------------------
+                initComunication = time.time()
+                # ------------------------------------
                 # Actualizamos el arreglo de fuentes a enviar
                 jsonSend["SOURCES"] = sourcesNewList                
                 url = workersNodes[worker].getURL(mode=modeToSend,endPoint=endPoint)
                 workerID = workersNodes[worker].getID()
                 # tiempo de salida
-                # loggerError.error("-------------------------------------------------------------------------- 2")
                 exitTime = time.time()
                 jsonSend['EXIT_TIME'] = exitTime
                 # enviamos
-                # loggerError.error("-------------------------------------------------------------------------- 3")
                 t = threading.Thread(target=sendData, args=(url,jsonSend,numberEvent,procesList,workerID))
                 threadsList.append(t)
                 t.start()
+                # ------------------------------------
+                endCmunication = time.time()
+                comunicationTime = endCmunication-initComunication
+                sumComunicationTime = sumComunicationTime + comunicationTime
+                # ------------------------------------
+        
         # LOGGER ------------------------------------------------
         serviceTime = exitTime-arrivalTime
         latenceTime = arrivalTime-exitTimeManager
-        # OPERATION TYPE_BLANCER TIME_SERVICE ARRIVAL_TIME EXIT_TIME LATENCIE_TIME
-        loggerInfo.info('BALANCE_ESPATIAL {} {} {} {} {} {}'.format(typeBalanceEspatial, serviceTime, arrivalTime, exitTime, latenceTime, nodeId))
+        # OPERATION TYPE_BLANCER SERVICE_TIME ARRIVAL_TIME EXIT_TIME LATENCIE_TIME READ_TIME BALANCER_TIME COMUNICATION_TIME
+        loggerInfo.info('BALANCE_ESPATIAL {} {} {} {} {} {} {} {} {}'.format(typeBalanceEspatial, serviceTime, arrivalTime, exitTime, latenceTime, nodeId, sumReadTime, balancerTime, sumComunicationTime))
 
         jsonReturn ={
             "RESPONSE_STATUS": "SUCCESSFULLY",
@@ -418,9 +448,20 @@ def balanceTemporal():
         # inicialzar las cajas correspondientes a cada trabajador
         initWorkres = mtd.initWorkresArray(workersCant)
         # Divide las cargas entre los n workers
-        balanceData = mtd.toBalanceData(initWorkers=initWorkres,
-                                    balanceData=list(uniqueIdTemporal),
-                                    algorithm=state["algorithm"])
+        algorithmBalancer= state["algorithm"]
+        if (algorithmBalancer=="TC"):
+            balanceData = mtd.toBalanceDataTC(initWorkers=initWorkres,
+                                        balanceData=list(uniqueIdTemporal),
+                                        algorithm=algorithmBalancer,
+                                        sources=sources,varSpatial="TemporalId")
+        else:
+            balanceData = mtd.toBalanceData(initWorkers=initWorkres,
+                                        balanceData=list(uniqueIdTemporal),
+                                        algorithm=algorithmBalancer)
+        # ------------------------------------
+        endBalamncer = time.time()
+        balancerTime = endBalamncer - arrivalTime
+        # ------------------------------------
 
         # loggerError.error("---------------------------------------- Balanced {}".format(balanceData))
         # Realizamos una copia el json de enrtada
@@ -437,18 +478,29 @@ def balanceTemporal():
         # array de hilos
         threads = list()
         # loggerError.error("---------------------------------------- Get Paramaters")
-        suma = 0
+        sumReadTime = 0
         sourcesActual = message["SOURCES"]
         for worker in range(workersCant):
             sourcesNewList = list()
             procesList = list()
             # leemos los archivos
             cont = 0
+            
             # loggerError.error("---------------------------------------- {}".format(workersNodes[worker].getID()))
             for src in range(len(sources)):
                 # Leemos el archivo a Distribuir
+                # ------------------------------------
+                # read time
+                initReadTime = time.time()
+                # ------------------------------------
                 sourceName = sourcesActual[src]
                 df_p = pd.read_csv('.{}/{}/{}'.format(sourcePath,state['nodeId'],sourceName))
+                # ------------------------------------
+                # end read time
+                endReadTime = time.time()
+                readTimeFile = (endReadTime - initReadTime)
+                sumReadTime = sumReadTime + readTimeFile
+                # ------------------------------------
                 # loggerError.error("---------------------------------------- {} {}".format(sourceName, df_p.shape[0]))
                 #  Recorremos los valores que les toca al nodo
                 auxList = list()
@@ -471,6 +523,9 @@ def balanceTemporal():
 
                 procesList.append(auxList)
                 # loggerError.error("---------------------------------------------------- {}".format(len(sourcesNewList)))
+            # ------------------------------------
+            initComunication = time.time()
+            # ------------------------------------
             # Actualizamos el arreglo de fuentes a enviar
             jsonSend["SOURCES"] = sourcesNewList
             #  URL destino
@@ -483,12 +538,17 @@ def balanceTemporal():
             t = threading.Thread(target=sendData, args=(url,jsonSend,numberEvent,procesList,workerID))
             threads.append(t)
             t.start() 
+            # ------------------------------------
+            endCmunication = time.time()
+            comunicationTime = endCmunication-initComunication
+            sumComunicationTime = sumComunicationTime + comunicationTime
+            # ------------------------------------
         
         # LOGGER ------------------------------------------------
         serviceTime = exitTime-arrivalTime
         latenceTime = arrivalTime-exitTimeManager
-        # OPERATION TYPE_BLANCER TIME_SERVICE ARRIVAL_TIME EXIT_TIME LATENCIE_TIME
-        loggerInfo.info('BALANCE_TEMPORAL {} {} {} {} {} {}'.format(balanceType, serviceTime, arrivalTime, exitTime, latenceTime, nodeId))
+        # OPERATION TYPE_BLANCER SERVICE_TIME ARRIVAL_TIME EXIT_TIME LATENCIE_TIME READ_TIME BALANCER_TIME COMUNICATION_TIME
+        loggerInfo.info('BALANCE_TEMPORAL {} {} {} {} {} {} {} {} {}'.format(balanceType, serviceTime, arrivalTime, exitTime, latenceTime, nodeId, sumReadTime, balancerTime, sumComunicationTime))
         # JSON RETURN
         jsonReturn ={
             "RETURN": "SUCCESSFULLY",
@@ -584,11 +644,23 @@ def balanceZ():
         # inicialzar las cajas correspondientes a cada trabajador
         initWorkres = mtd.initWorkresArray(workersCant)
         # Divide las cargas entre los n workers
-        balanceData = mtd.toBalanceData(initWorkers=initWorkres,
-                                    balanceData=list(toBalanceData),
-                                    algorithm=state["algorithm"])
+        algorithmBalancer = state["algorithm"]
+        if (algorithmBalancer=="TC"):
+            loggerError.error("---------------------------------------- Inicio {}".format(list(toBalanceData)))
+            balanceData = mtd.toBalanceDataTC(initWorkers=initWorkres,
+                                        balanceData=list(toBalanceData),
+                                        algorithm=algorithmBalancer,
+                                        sources=sources,varSpatial=variablesToBalance[0])
+        else:
+            balanceData = mtd.toBalanceData(initWorkers=initWorkres,
+                                        balanceData=list(toBalanceData),
+                                        algorithm=algorithmBalancer)
+        # ------------------------------------
+        endBalamncer = time.time()
+        balancerTime = endBalamncer - arrivalTime
+        # ------------------------------------
 
-        # loggerError.error("---------------------------------------- Balanced {}".format(balanceData))
+        loggerError.error("---------------------------------------- Balanced {}".format(balanceData))
         # Realizamos una copia el json de enrtada
         jsonSend = message
         # actualizamos las fuentes para cada trabajador
@@ -604,6 +676,7 @@ def balanceZ():
         threads = list()
         # loggerError.error("---------------------------------------- Get Paramaters")
         sourcesActual = message["SOURCES"]
+        sumReadTime=0
         for worker in range(workersCant):
             sourcesNewList = list()
             procesList = list()
@@ -614,16 +687,29 @@ def balanceZ():
                 # Leemos el archivo a Distribuir
                 sourceName = sourcesActual[src]
                 # df_p = pd.read_csv('.{}/{}/{}'.format(sourcePath,state['nodeId'],sourceName))
+                # ------------------------------------
+                # read time
+                initReadTime = time.time()
+                # ------------------------------------
                 if (nodeManager.getID()=="-"):
                     df_p = pd.read_csv('.{}/{}'.format(sourcePath,sourcesActual[src]))
                 else:
                     df_p = pd.read_csv('.{}/{}/{}'.format(sourcePath,nodeManager.getID(),sourcesActual[src]))
                 # loggerError.error("---------------------------------------- {} {}".format(sourceName, df_p.shape[0]))
+                # ------------------------------------
+                # end read time
+                endReadTime = time.time()
+                # loggerError.error("---------------------------------------- {}".format(balanceData))
+                readTimeFile = (endReadTime - initReadTime)
+                
+                sumReadTime = sumReadTime + readTimeFile
+                # ------------------------------------
                 #  Recorremos los valores que les toca al nodo
                 auxList = list()
+                
                 for zValue in balanceData[worker]:
                     # Solo seleccionamos las filas que correspondan a su balanceo
-                    # loggerError.error("---------------------------------------- {} {}".format(varaibleSource, zValue))
+                    loggerError.error("---------------------------------------- {} {}".format(varaibleSource, zValue))
                     dfRows = df_p[df_p[varaibleSource]==zValue]
                     # suma = suma + dfRows.shape[0]
                     # app.logger.info(rows_df.shape)
@@ -644,24 +730,35 @@ def balanceZ():
 
                 procesList.append(auxList)
                 # loggerError.error("---------------------------------------------------- {}".format(df_p.shape[0]))
+            # ------------------------------------
+            initComunication = time.time()
+            # ------------------------------------
             # Actualizamos el arreglo de fuentes a enviar
             jsonSend["SOURCES"] = sourcesNewList
             #  URL destino
             url = workersNodes[worker].getURL(mode=modeToSend,endPoint=endPoint)
             workerID = workersNodes[worker].getID()
+            loggerError.error("-------------------------------- {}".format(workerID))
             # tiempo de salida
             exitTime = time.time()
             jsonSend['EXIT_TIME'] = exitTime
             # enviamos
             t = threading.Thread(target=sendData, args=(url,jsonSend,numberEvent,procesList,workerID))
             threads.append(t)
-            t.start() 
+            t.start()
+            # ------------------------------------
+            endCmunication = time.time()
+            comunicationTime = endCmunication-initComunication
+            sumComunicationTime = sumComunicationTime + comunicationTime
+            # ------------------------------------
         
         # LOGGER ------------------------------------------------
         serviceTime = exitTime-arrivalTime
         latenceTime = arrivalTime-exitTimeManager
-        # OPERATION TYPE_BLANCER TIME_SERVICE ARRIVAL_TIME EXIT_TIME LATENCIE_TIME
-        loggerInfo.info('BALANCE_Z {} {} {} {} {} {}'.format(balanceType, serviceTime, arrivalTime, exitTime, latenceTime, nodeId))
+        # # OPERATION TYPE_BLANCER TIME_SERVICE ARRIVAL_TIME EXIT_TIME LATENCIE_TIME
+        # loggerInfo.info('BALANCE_Z {} {} {} {} {} {}'.format(balanceType, serviceTime, arrivalTime, exitTime, latenceTime, nodeId))
+        # OPERATION TYPE_BLANCER SERVICE_TIME ARRIVAL_TIME EXIT_TIME LATENCIE_TIME READ_TIME BALANCER_TIME COMUNICATION_TIME
+        loggerInfo.info('BALANCE_Z {} {} {} {} {} {} {} {} {}'.format(balanceType, serviceTime, arrivalTime, exitTime, latenceTime, nodeId, sumReadTime, balancerTime, sumComunicationTime))
         # JSON RETURN
         jsonReturn ={
             "RETURN": "SUCCESSFULLY",

@@ -84,33 +84,41 @@ def TwoChoicesV2(cargas, traza):
     return cargas
 
 # se encargara de dividr la carga como condicional en regristros 
-def TwoChoicesV3(cargas, traza, nameFile, sourcePath):
-    df = pd.read_csv('.{}/{}'.format(sourcePath,nameFile))
+def TwoChoicesV3(cargas, traza, sources, sourcePath, varSpatial):
+    # df = pd.read_csv('.{}/{}'.format(sourcePath,nameFile))
     workers = len(cargas)
+    cantWorkers = np.zeros(workers)
     select_bin = 0
     select_bin2 = 0
     aux = True
-    cargasCount = np.zeros(workers)
-    # si es uno se le asigna todo
     if(workers==1):
         for x in range(len(traza.iloc[:,0])):
             cargas[0].append(traza[0][x])
     else:
-        # si son dos o mas trabajadores
-        for x in range(len(traza.iloc[:,0])): # clase a distribuir
+        for x in range(len(traza.iloc[:,0])):
+            # se selecciona el primer trabajador
             select_bin = random.randint(0, workers-1)
             while(aux):
+                # se selecciona el segundo trabajador
                 select_bin2 = random.randint(0, workers-1)
-                if(select_bin != select_bin2): # si son diferentes
+                # si es diferente rompe el ciclo
+                if(select_bin != select_bin2):
                     aux = False
+            # revisamos la cantidad de registros con esa clase para cada fuente
+            cantRows=0
+            for src in sources:
+                df = pd.read_csv('.{}/{}'.format(sourcePath,src))
+                # cantidad de registros
+                cantRows = cantRows + df[df[varSpatial]==traza[0][x]].shape[0]
             
-            if(cargasCount[select_bin] < cargasCount[select_bin2]):
+            if( cantWorkers[select_bin] < cantWorkers[select_bin2] ):
                 cargas[select_bin].append(traza[0][x])
-                cargasCount[select_bin] = cargasCount[select_bin]+df[traza[0][x]].shape[0]
+                cantWorkers[select_bin] = cantWorkers[select_bin]+cantRows
             else:
                 cargas[select_bin2].append(traza[0][x])
-                cargasCount[select_bin2] = cargasCount[select_bin2]+df[traza[0][x]].shape[0]
+                cantWorkers[select_bin2] = cantWorkers[select_bin2]+cantRows
             aux = True
+            
     return cargas
 
 def toBalanceData(initWorkers,balanceData,algorithm):
@@ -120,6 +128,12 @@ def toBalanceData(initWorkers,balanceData,algorithm):
         balancedData = TwoChoicesV2(cargas=initWorkers, traza=balanceData)
     elif (algorithm=='PR'):
         balancedData = PseudoRandomV2(cargas=initWorkers, traza=balanceData)
+    return balancedData
+
+def toBalanceDataTC(initWorkers,balanceData,algorithm,sources,sourcePath,varSpatial):
+    if (algorithm=='TC'):
+        # cargas, traza, nameFile, sourcePath
+        balancedData = TwoChoicesV3(cargas=initWorkers, traza=balanceData, sources=sources, sourcePath=sourcePath,varSpatial=varSpatial)
     return balancedData
 
 # Funcuncion que nos ayudara a sacar los valores unicos de las fuentes de acuerdo a una columna/variable

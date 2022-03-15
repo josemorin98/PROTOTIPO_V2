@@ -224,7 +224,7 @@ def ploting():
         del message["PARAMS"][0]
 
         cmap = LinearSegmentedColormap.from_list('mycmap', [(0,'white'),(1,'red')])
-        
+        loggerError.error("------------------------------------ Params")
         for src in range(len(sources)):
             # leemos el archivo a procesar
             # clusterData = mtd.read_CSV('.{}/{}'.format(sourcePath,sources[src]))

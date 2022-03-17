@@ -70,8 +70,8 @@ def TwoChoicesV3(cargas, traza, sources, sourcePath, varSpatial):
                 cargas[select_bin2].append(xTraza)
                 cantWorkers[select_bin2] = cantWorkers[select_bin2]+cantRows
             aux = True
-    print(cantWorkers)
-    print(sum(cantWorkers))
+    # print(cantWorkers)
+    # print(sum(cantWorkers))
     return cargas
 
 
@@ -86,7 +86,7 @@ arrayWorkers = initWorkresArray(workers=initWorkers)
 
 
 print(df.shape[0])
-cargasResult = TwoChoicesV3(cargas=arrayWorkers, traza=(toBalanceData), sources=sources,sourcePath=sourcePath, varSpatial=varSpatial)
+cargasResult = TwoChoicesV3(cargas=arrayWorkers, traza=list(toBalanceData), sources=sources,sourcePath=sourcePath, varSpatial=varSpatial)
 print(cargasResult)
 
 

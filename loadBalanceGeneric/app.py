@@ -646,11 +646,14 @@ def balanceZ():
         # Divide las cargas entre los n workers
         algorithmBalancer = state["algorithm"]
         if (algorithmBalancer=="TC"):
-            loggerError.error("---------------------------------------- Inicio {}".format(list(toBalanceData)))
-            balanceData = mtd.toBalanceDataTC(initWorkers=initWorkres,
-                                        balanceData=list(toBalanceData),
-                                        algorithm=algorithmBalancer,
-                                        sources=sources,varSpatial=variablesToBalance[0])
+            loggerError.error("---------------------------------------- IniciO {}".format(workersCant))
+            # balanceData = mtd.toBalanceDataTC(initWorkers = initWorkres,
+            #                                 balanceData = list(toBalanceData),
+            #                                 algorithm=algorithmBalancer,
+            #                                 sources=sources, varSpatial=variablesToBalance[0], 
+            #                                 loggerError=loggerError)
+            balanceData = mtd.TwoChoicesV4(cargas=initWorkres, balanceData=toBalanceData, sourcePath=sourcePath, varSpatial=variablesToBalance[0],loggerError=loggerError)
+            # toBalanceDataTC(initWorkers,balanceData,algorithm,sources,sourcePath,varSpatial, loggerError)
         else:
             balanceData = mtd.toBalanceData(initWorkers=initWorkres,
                                         balanceData=list(toBalanceData),

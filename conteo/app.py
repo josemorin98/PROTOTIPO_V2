@@ -195,35 +195,62 @@ def sendData(url,jsonSend,numberEvent,procesList,nodeId):
         loggerError.error('CORRELATION_ERROR SEND_INFO {}'.format(nodeId))
         return "ERROR"
 
-def correlationExec(regressionData, normalize, regressionVariables, nameSource, nodeID):
+def conteoExec(conteoData, grupoBY, conteoVariables, nameSource, nodeID,group_by):
     arrivalTime = time.time()
     try:
         # loggerError.error("------------------------------ FLAG 2.1")
-        data_p = regressionData[regressionVariables]
-        if (normalize!=False):
-            # normalizamos los datos
-            data_p = mtd.normalize(data_p,regressionVariables)
-        # genereamos la version de prueba y test
-        # loggerError.error('{} - {}'.format(regressionVariables[0],regressionVariables[1]))
-        
-        corr = data_p.dropna().corr()
-        # loggerError.error("------------------------------ FLAG \n {}".format(corr))
-        mtd.correlationPlot(corr,sourcePath=sourcePath,nameSource='{}'.format(nameSource),loggerInfo=loggerInfo,
-                    loggerError=loggerError, nodeId=nodeID)
+        DF_data = conteoData
+        columns = DF_data.columns
+        # variables para el conteo
+        variables = list(conteoVariables)
+        # varaible a agrupar / clave entidad
+        group_columns = grupoBY
+        query_str = ""
+        # --------------------------------
+        columns= set(columns) - set(variables) #remove columns that are going to be group
+        columns= set(columns) - set(group_columns) 
+
+        applied_dict=dict()
+        for x in columns:
+                applied_dict[x]="first"
+
+        for x in variables:
+                applied_dict[x]=group_by
+
+        #print(DF_data)
+
+        if group_by == "count":
+                DF_data=DF_data[group_columns]
+                DF_data['count'] = 0
+                DF_data = DF_data.groupby(group_columns,as_index=False)['count'].count()
+        else:
+                DF_data = DF_data.groupby(group_columns,as_index=False).agg(applied_dict)
+
+
+        # ==============================================================
+        if query_str != "":
+                try:
+                        DF_data = DF_data.query(query_str)
+                except Exception as e:
+                        print("hay errores en el query")
+                        print(e)
+
+        nameFile = ".{}/{}/{}_COUNT.png".format(sourcePath, nodeId, nameSource)
+        DF_data.to_csv(nameFile,index=False)
         # loggerError.error("------------------------------ FLAG 2.3")
         exitTime = time.time()
         serviceTime = exitTime-arrivalTime
         latenceTime = arrivalTime-exitTime
-        loggerInfo.info('CORRELATION_DONE {} {} {} {} {} {}'.format(nameSource, serviceTime, arrivalTime, exitTime, latenceTime, data_p.shape[0]))
+        loggerInfo.info('COUNT_DONE {} {} {} {} {} {}'.format(nameSource, serviceTime, arrivalTime, exitTime, latenceTime, DF_data.shape[0]))
     except:
         exitTime = time.time()
         serviceTime = exitTime-arrivalTime
         latenceTime = arrivalTime-exitTime
-        loggerError.error('CORRELATION_FAILED {} {} {} {} {}'.format(nameSource, serviceTime, arrivalTime, exitTime, latenceTime))
+        loggerError.error('COUNT_FAILED {} {} {} {} {}'.format(nameSource, serviceTime, arrivalTime, exitTime, latenceTime))
     return nameSource
 
 # Clustering process
-@app.route('/analytics/correlation', methods = ['POST'])
+@app.route('/analytics/conteo', methods = ['POST'])
 def regression():
     global nodeId
     global nodeManager
@@ -245,20 +272,20 @@ def regression():
         correlationVariables = paramsCorrelation["VARS"]
         # lista de nuevas fuentes
         sourcesNew = list()
-        normalizeVal = mtd.trueOrFalse(paramsCorrelation['NORMALIZE'])
         for src in range(len(sources)):
             # leemos el archivo a procesar
             
             if (nodeManager.getID()=="-"):
-                correlationData = mtd.read_CSV('.{}/{}'.format(sourcePath,sources[src]))
+                conteoData = mtd.read_CSV('.{}/{}'.format(sourcePath,sources[src]))
             else:
-                correlationData = mtd.read_CSV('.{}/{}/{}'.format(sourcePath,nodeManager.getID(),sources[src]))
+                conteoData = mtd.read_CSV('.{}/{}/{}'.format(sourcePath,nodeManager.getID(),sources[src]))
                 # loggerError.error("------------------------------ FLAG ".format(correlationData)) 
             # generamos el hilo que se ejecutara para realizar el clusering
             
             with ThreadPoolExecutor(max_workers=os.cpu_count()) as executor:
             # app.logger.info('executoooooor')
-                ext = executor.submit(correlationExec, correlationData, normalizeVal, correlationVariables[0],sources[src],nodeId)
+                ext = executor.submit(conteoExec, conteoData, "ent_regis", "ent_regis",sources[src],nodeId,"count")
+
                 sourcesNew.append(ext.result())
                 # loggerError.error("------------------------------ FLAG 3 - {}".format(ext.result()))
         # tiempo de salida
@@ -282,16 +309,16 @@ def regression():
                 initService = time.time()
                 jsonSend['EXIT_TIME'] = initService
                 workerID = workersNodes[worker].getID()
-                t = threading.Thread(target=sendData, args=(url,jsonSend, numberEvent, 'CORRELATION', workerID))
+                t = threading.Thread(target=sendData, args=(url,jsonSend, numberEvent, 'COUNT', workerID))
                 threadsList.append(t)
                 t.start()
         
         serviceTime = exitTime-arrivalTime
         latenceTime = arrivalTime-exitTimeManager
-        loggerInfo.info('CORRELATION_DONE NODE {} {} {} {} {}'.format(serviceTime, arrivalTime, exitTime, latenceTime, 0, 0))
+        loggerInfo.info('COUNT_DONE NODE {} {} {} {} {}'.format(serviceTime, arrivalTime, exitTime, latenceTime, 0, 0))
         jsonReturn ={
                 "RETURN": "SUCCESSFULLY",
-                "OPERATION": "CORRELATION_DONE",
+                "OPERATION": "COUNT_DONE",
                 "TIME_SERVICE": serviceTime,
                 "ARRIVAL_TIME": arrivalTime,
                 "EXIT_TIME": exitTime,
@@ -300,7 +327,7 @@ def regression():
             
         return jsonify(jsonReturn)
     except:
-        loggerError.error('CORRELATION_ERROR CORRELATION_SEND {}'.format(state['nodeId']))
+        loggerError.error('COUNT_ERROR CORRELATION_SEND {}'.format(state['nodeId']))
         exitTime = time.time()
         serviceTime = exitTime-arrivalTime
         latenceTime = arrivalTime-exitTimeManager
@@ -308,7 +335,7 @@ def regression():
         latenceTime = arrivalTime-exitTimeManager
         jsonReturn ={
                 "RETURN": "SUCCESSFULLY",
-                "OPERATION": "CORRELATION_ERROR",
+                "OPERATION": "COUNT_ERROR",
                 "TIME_SERVICE": serviceTime,
                 "ARRIVAL_TIME": arrivalTime,
                 "EXIT_TIME": exitTime,

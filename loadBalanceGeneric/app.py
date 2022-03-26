@@ -603,7 +603,9 @@ def balanceZ():
     # loggerError.error("-------------------------------------- {}".format(balanceType))
     if(balanceType == 'CLASS'):
         sources = message["SOURCES"] # Seleccionamos las fuentes
-        variablesToBalance = message["Z"] # Selecionamos las columnas de balanceo de cada archivo
+        variablesToBalance = message["Z"][0] # Selecionamos las columnas de balanceo de cada archivo
+        loggerError.error("---------------------------------------- Inicio {}".format(variablesToBalance))
+        del message["Z"][0]
         # typeZClass = message["TYPE_Z"] # Nombre de la columna
         # loggerError.error("-------------------------------------- {}".format(balanceType))
         for pos in range(len(sources)):
@@ -645,8 +647,9 @@ def balanceZ():
         initWorkres = mtd.initWorkresArray(workersCant)
         # Divide las cargas entre los n workers
         algorithmBalancer = state["algorithm"]
+        
         if (algorithmBalancer=="TC"):
-            loggerError.error("---------------------------------------- IniciO {}".format(workersCant))
+            
             # balanceData = mtd.toBalanceDataTC(initWorkers = initWorkres,
             #                                 balanceData = list(toBalanceData),
             #                                 algorithm=algorithmBalancer,
@@ -738,6 +741,7 @@ def balanceZ():
             # ------------------------------------
             # Actualizamos el arreglo de fuentes a enviar
             jsonSend["SOURCES"] = sourcesNewList
+            del message["Z"][0]
             #  URL destino
             url = workersNodes[worker].getURL(mode=modeToSend,endPoint=endPoint)
             workerID = workersNodes[worker].getID()

@@ -21,7 +21,7 @@ services:
     environment:
 
       NODE_ID: lb_generic_z_0
-      ALGORITHM: TC
+      ALGORITHM: RR
       IP: '127.0.0.1'
       PUBLIC_PORT: 5454
       DOCKER_PORT: 5000
@@ -33,8 +33,8 @@ services:
     #   context: ./lb_generic
     #   dockerfile: ./Dockerfile
     volumes:
-      - /test/prototipoTest:/app/data/
-      - /test/prototipoTest/logs:/app/data/logs
+      - /home/jmorin/test/:/app/data/
+      - /home/jmorin/test/logs/:/app/data/logs
     networks:
       - proto_net
     ports:
@@ -50,6 +50,7 @@ services:
       DOCKER_PORT: 5000
       MODE: DOCKER
       SEND: 0
+      ALGORITHM: RR
       SOURCE_PATH: /data
       LOGS_PATH: /logs
 
@@ -59,18 +60,18 @@ services:
       DOCKER_PORT_MANAGER: 5000
       
     volumes:
-      - /test/prototipoTest/:/app/data/
-      - /test/prototipoTest/logs/:/app/data/logs
+      - /home/jmorin/test/:/app/data/
+      - /home/jmorin/test/logs/:/app/data/logs
     networks:
       - proto_net
     ports:
       - 5001:5000
   
-  clustering_0:
-    image: jmorin98/clustering
-    hostname: clustering_0
+  conteo_0:
+    image: jmorin98/conteo
+    hostname: conteo_0
     environment:
-      NODE_ID: clustering_0
+      NODE_ID: conteo_0
       IP: '127.0.0.1'
       PUBLIC_PORT: 5002
       DOCKER_PORT: 5000
@@ -84,8 +85,8 @@ services:
       PUBILC_PORT_MANAGER: 5001
       DOCKER_PORT_MANAGER: 5000
     volumes:
-      - /test/prototipoTest/:/app/data/
-      - /test/prototipoTest/logs/:/app/data/logs
+      - /home/jmorin/test/:/app/data/
+      - /home/jmorin/test/logs/:/app/data/logs
     networks:
       - proto_net
     ports:
@@ -93,4 +94,3 @@ services:
 
 networks:
   proto_net:
-  

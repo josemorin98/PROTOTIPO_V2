@@ -71,7 +71,7 @@ data_file = {
             'lat','lon','TasaD','causasuic_l']],
             "SILHOUETTE":1
         }],
-    "PIPELINE":["balance/temporal","analytics/clustering"],
+    "PIPELINE":["balance/function","analytics/clustering"],
     "EXIT_TIME":time.time()
  }
 
@@ -82,7 +82,7 @@ ip_neg = "192.168.1.77"
 ip_home = "192.168.0.16"
 ip_gama = "148.247.202.73"
 
-url = "http://{}:4999/test".format(ip_cinves) # Negocio
+url = "http://{}:4999/test".format(ip_gama) # Negocio
 
 print(url)
 

@@ -67,15 +67,15 @@ def test():
     global tableState
     exitTime = time.time()
     data_file = {
-        "SOURCES":["TasaD_preV3.csv"],
+        "SOURCES":["def_2000_2019_fin.csv"],
         "START":"2000-01-01 00:00:00",
         "END":"2019-12-31 00:00:00",
         "ESPATIAL":[["nombre entidad"]],
         "TYPE_ESPATIAL":"STATE",
         "TEMPORAL":["anio_ocur"], # col,range,cant
         "TYPE_TEMPORAL":["anio",1],
-        "Z":["causasuic"],
-        "BALANCE":["CLASS","TEMPORAL"],
+        "Z":[["causasuic"],["anio_ocur"]],
+        "BALANCE":["CLASS","CLASS"],
         "PARAMS":[
             {
                 "K":[3,4,5],
@@ -84,13 +84,8 @@ def test():
                 'Poblacion masculina','Poblacion femenina',
                 'Total de viviendas habitadas','CVE_ENT','CVE_MUN','TasaD','causasuic_l']],
                 "SILHOUETTE":1
-            },
-            {
-                "TYPE_PLOT":"POLYGON",
-                "TYPE_POLYGON":"STATE"
-                "COLUMN_POLYGON"
             }],
-        "PIPELINE":["balance/temporal","analytics/clustering","/analytics/map/mexico"],
+        "PIPELINE":["balance/function","analytics/conteo",],
         "EXIT_TIME":exitTime
     }
 

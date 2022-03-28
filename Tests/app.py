@@ -67,14 +67,14 @@ def test():
     global tableState
     exitTime = time.time()
     data_file = {
-        "SOURCES":["def_2000_2019_fin.csv"],
+        "SOURCES":["TasaD_preV3.csv"],
         "START":"2000-01-01 00:00:00",
         "END":"2019-12-31 00:00:00",
         "ESPATIAL":[["nombre entidad"]],
         "TYPE_ESPATIAL":"STATE",
         "TEMPORAL":["anio_ocur"], # col,range,cant
         "TYPE_TEMPORAL":["anio",1],
-        "Z":[["causasuic"],["anio_ocur"]],
+        "Z":[["anio_regis"]],
         "BALANCE":["CLASS","CLASS"],
         "PARAMS":[
             {
@@ -85,7 +85,7 @@ def test():
                 'Total de viviendas habitadas','CVE_ENT','CVE_MUN','TasaD','causasuic_l']],
                 "SILHOUETTE":1
             }],
-        "PIPELINE":["balance/function","analytics/conteo",],
+        "PIPELINE":["analytics/clustering"],
         "EXIT_TIME":exitTime
     }
 
@@ -98,7 +98,9 @@ def test():
     ip_home = "192.168.0.16"
     ip_gama = "148.247.202.73"
     hostname = "lb_generic_z_0"
+    hostname2 = "conteo_0"
     url = "http://{}:5000/balance/function".format(hostname) # Negocio
+    # url = "http://{}:5000/analytics/conteo".format(hostname2) # Negocio
 
     loggerInfo.info(url)
 

@@ -3,18 +3,18 @@ docker-compose down
 cd loadBalanceGeneric
 docker build -t jmorin98/loadbalancer:latest .
 docker push jmorin98/loadbalancer:latest
-cd ..
+# cd ..
 # cd clustering
 # docker build -t jmorin98/clustering:latest .
 # docker push jmorin98/clustering:latest
-# cd ..
+cd ..
 cd Tests
 docker build -t jmorin98/test:latest .
 docker push jmorin98/test:latest
 cd ..
-# cd Map_Mexico
-# docker build -t jmorin98/mapamx:latest .
-# docker push jmorin98/mapamx:latest
+    # cd Map_Mexico
+    # docker build -t jmorin98/mapamx:latest .
+    # docker push jmorin98/mapamx:latest
 # cd ..
 # cd regression
 # docker build -t jmorin98/regression:latest .

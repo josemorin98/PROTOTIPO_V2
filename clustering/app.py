@@ -50,7 +50,7 @@ loggerError.setLevel(logging.ERROR)
 loggerError.addHandler(hdlr_2)
 loggerError.addHandler(console)
 
-# creamos la carpeta
+# creamos la carpet
 if (not os.path.exists(".{}/{}".format(sourcePath,nodeId))):
     os.mkdir(".{}/{}".format(sourcePath,nodeId))
 

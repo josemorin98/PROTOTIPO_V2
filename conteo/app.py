@@ -205,37 +205,43 @@ def conteoExec(conteoData, grupoBY, conteoVariables, nameSource, nodeID,group_by
         variables = list(conteoVariables)
         # varaible a agrupar / clave entidad
         group_columns = grupoBY
-        query_str = ""
+        query_str = "CVE_ENT"
         # --------------------------------
         columns= set(columns) - set(variables) #remove columns that are going to be group
         columns= set(columns) - set(group_columns) 
 
         applied_dict=dict()
+        # loggerError.error("------------------------------ FLAG 2.2 {}".format(columns))
         for x in columns:
-                applied_dict[x]="first"
+            applied_dict[x]="first"
 
         for x in variables:
-                applied_dict[x]=group_by
+            applied_dict[x]=group_by
 
         #print(DF_data)
-
-        if group_by == "count":
-                DF_data=DF_data[group_columns]
-                DF_data['count'] = 0
-                DF_data = DF_data.groupby(group_columns,as_index=False)['count'].count()
+        loggerError.error("--------------------------------- {}".format(group_columns))
+        if (group_by == "count"):
+            loggerError.error("--------------------------------- {}".format(2.1))
+            DF_data=DF_data[group_columns]
+            loggerError.error("--------------------------------- {}".format(2.2))
+            DF_data['count'] = 0
+            loggerError.error("--------------------------------- {}".format(DF_data.shape))
+            DF_data = DF_data.groupby(group_columns,as_index=False)['count'].count()
+            # loggerError.error("--------------------------------- {}".format(2.4))
         else:
-                DF_data = DF_data.groupby(group_columns,as_index=False).agg(applied_dict)
+            DF_data = DF_data.groupby(group_columns,as_index=False).agg(applied_dict)
 
-
+        loggerError.error("------------------------------ {}".format(3))
         # ==============================================================
         if query_str != "":
-                try:
-                        DF_data = DF_data.query(query_str)
-                except Exception as e:
-                        print("hay errores en el query")
-                        print(e)
+            try:
+                DF_data = DF_data.query(query_str)
+            except Exception as e:
+                loggerError.error("Hay errores en el query")
+                print(e)
 
-        nameFile = ".{}/{}/{}_COUNT.png".format(sourcePath, nodeId, nameSource)
+        nameFile = ".{}/{}/{}_COUNT.csv".format(sourcePath, nodeId, nameSource)
+        
         DF_data.to_csv(nameFile,index=False)
         # loggerError.error("------------------------------ FLAG 2.3")
         exitTime = time.time()
@@ -272,26 +278,34 @@ def regression():
         correlationVariables = paramsCorrelation["VARS"]
         # lista de nuevas fuentes
         sourcesNew = list()
+        # loggerError.error("------------------------------ FLAG 4 {}".format(sources))
         for src in range(len(sources)):
             # leemos el archivo a procesar
-            
+            # loggerError.error("------------------------------ FLAG -4 {}".format(sources[src]))
+            timeRead = time.time()
             if (nodeManager.getID()=="-"):
+                # loggerError.error("------------------------------ FLAG 4 {}".format('.{}/{}'.format(sourcePath,sources[src])))
                 conteoData = mtd.read_CSV('.{}/{}'.format(sourcePath,sources[src]))
             else:
+                # loggerError.error("------------------------------ FLAG 4 {}".format('.{}/{}/{}'.format(sourcePath,nodeManager.getID(),sources[src])))
                 conteoData = mtd.read_CSV('.{}/{}/{}'.format(sourcePath,nodeManager.getID(),sources[src]))
-                # loggerError.error("------------------------------ FLAG ".format(correlationData)) 
+                
+            timeReadEnd = time.time()
+            loggerInfo.info('-------------------------------------- READ {}'.format(timeReadEnd -timeRead))
             # generamos el hilo que se ejecutara para realizar el clusering
-            
+            # loggerError.error("------------------------------ FLAG 4.1 {}".format(conteoData.shape))
             with ThreadPoolExecutor(max_workers=os.cpu_count()) as executor:
-            # app.logger.info('executoooooor')
-                ext = executor.submit(conteoExec, conteoData, "ent_regis", "ent_regis",sources[src],nodeId,"count")
-
+                # nombre entidad
+                # ent_regis
+                # 
+                ext = executor.submit(conteoExec, conteoData, ["anio_regis","ent_regis"], ["ent_regis"], sources[src], nodeId, "count")
                 sourcesNew.append(ext.result())
                 # loggerError.error("------------------------------ FLAG 3 - {}".format(ext.result()))
         # tiempo de salida
-        loggerError.error("------------------------------ FLAG 4 {}".format(send))
+        
         exitTime = time.time()
         # si es verdadero enviamos
+        send=False
         if (send==True):
             workersCant = len(state["nodes"])
             jsonSend = message
@@ -327,7 +341,7 @@ def regression():
             
         return jsonify(jsonReturn)
     except:
-        loggerError.error('COUNT_ERROR CORRELATION_SEND {}'.format(state['nodeId']))
+        loggerError.error('COUNT_ERROR COUNT_ERROR {}'.format(state['nodeId']))
         exitTime = time.time()
         serviceTime = exitTime-arrivalTime
         latenceTime = arrivalTime-exitTimeManager

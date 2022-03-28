@@ -1,4 +1,5 @@
 
+from asyncio.log import logger
 from datetime import datetime
 import threading
 from flask import Flask, request
@@ -132,7 +133,7 @@ def updateStateTable(jsonRespone,numberEvent,procesList,nodeId):
 def sendData(url,jsonSend,numberEvent,procesList,nodeId):
     try:
         headers = {'PRIVATE-TOKEN': '<your_access_token>', 'Content-Type':'application/json'}
-        response = requests.post(url, data=json.dumps(jsonSend), headers=headers)
+        requests.post(url, data=json.dumps(jsonSend), headers=headers)
         # jsonResponse = response.json()
         # updateStateTable(jsonRespone=jsonResponse,numberEvent=numberEvent, procesList=procesList, nodeId=nodeId)
         return "OK"
@@ -601,43 +602,61 @@ def balanceZ():
     # BALANCER = FUNCTION, CLASS
     balanceType = message["BALANCE"][0]
     # loggerError.error("-------------------------------------- {}".format(balanceType))
-    if(balanceType == 'CLASS'):
-        sources = message["SOURCES"] # Seleccionamos las fuentes
-        variablesToBalance = message["Z"][0] # Selecionamos las columnas de balanceo de cada archivo
-        loggerError.error("---------------------------------------- Inicio {}".format(variablesToBalance))
-        del message["Z"][0]
-        # typeZClass = message["TYPE_Z"] # Nombre de la columna
-        # loggerError.error("-------------------------------------- {}".format(balanceType))
-        for pos in range(len(sources)):
-            # leemos el arhivo correspondiente
-            if (nodeManager.getID()=="-"):
-                df = pd.read_csv('.{}/{}'.format(sourcePath,sources[pos]))
-            else:
-                df = pd.read_csv('.{}/{}/{}'.format(sourcePath,nodeManager.getID(),sources[pos]))
-            # obtenemos la cloumna a unificar los valores
-            varaibleSource = variablesToBalance[0]
-            # loggerError.error("-------------------------------------- {}".format(varaibleSource))
-            # obtenemos los valores unicos de la columna
-            toBalanceData = df[varaibleSource].unique()
-            # loggerError.error("-------------------------------------- {}".format(toBalanceData))
-            # toBalanceData = mtd.readColumnsToBalance(fuentes=sources, variable_to_balance=variablesToBalance) # Extramos los valores unicos de cada fuent
-    else:
-        loggerError.error('BALANCER_ERROR Z_TYPE {}'.format(state['nodeId']))
-        exitTime = time.time()
-        serviceTime = exitTime-arrivalTime
-        latenceTime = arrivalTime-exitTimeManager
-        jsonReturn ={
-            "RETURN": "FAILED",
-            "OPERATION": "ERROR Z_TYPE",
-            "TYPE_BLANCER": state["algorithm"],
-            "TIME_SERVICE": serviceTime,
-            "ARRIVAL_TIME": arrivalTime,
-            "EXIT_TIME": exitTime,
-            "LATENCIE_TIME": latenceTime
-        }
-
-        return jsonify(jsonReturn)
     try:
+        if(balanceType == 'CLASS'):
+            sources = message["SOURCES"] # Seleccionamos las fuentes
+            # loggerError.error("---------------------------------------- Inicio {}".format(message["Z"]))
+            variablesToBalance = message["Z"][0] # Selecionamos las columnas de balanceo de cada archivo
+            
+            del message["Z"][0]
+            # typeZClass = message["TYPE_Z"] # Nombre de la columna
+            # loggerError.error("-------------------------------------- {}".format(balanceType))
+            dfs = list()
+            for pos in range(len(sources)):
+                # leemos el arhivo correspondiente
+                
+                initRead = time.time()
+                if (nodeManager.getID()=="-"):
+                    df = pd.read_csv('.{}/{}'.format(sourcePath,sources[pos]) )
+                else:
+                    df = pd.read_csv('.{}/{}/{}'.format(sourcePath,nodeManager.getID(),sources[pos]))
+                # obtenemos la cloumna a unificar los valores
+                endRead = time.time()
+                loggerInfo.info('---------------------------- READ {}'.format((endRead-initRead)))
+                varaibleSource = variablesToBalance[0]
+                # loggerError.error("-------------------------------------- {}".format(varaibleSource))
+                # obtenemos los valores unicos de la columna
+                # gruop by 
+                toBalanceData = df[varaibleSource].unique()
+                initBy = time.time()
+                df=df.groupby([varaibleSource])
+                endBy = time.time()
+                # 
+                loggerInfo.info('---------------------------- BY {}'.format((endBy-initBy)))
+                loggerError.error("---------------------------------- {}".format(df.ngroups))
+                # 
+                dfs.append(df)
+                # -------
+                # toBalanceData = df[varaibleSource].unique()
+                # loggerError.error("-------------------------------------- {}".format(toBalanceData))
+                # toBalanceData = mtd.readColumnsToBalance(fuentes=sources, variable_to_balance=variablesToBalance) # Extramos los valores unicos de cada fuent
+        else:
+            loggerError.error('BALANCER_ERROR Z_TYPE {}'.format(state['nodeId']))
+            exitTime = time.time()
+            serviceTime = exitTime-arrivalTime
+            latenceTime = arrivalTime-exitTimeManager
+            jsonReturn ={
+                "RETURN": "FAILED",
+                "OPERATION": "ERROR Z_TYPE",
+                "TYPE_BLANCER": state["algorithm"],
+                "TIME_SERVICE": serviceTime,
+                "ARRIVAL_TIME": arrivalTime,
+                "EXIT_TIME": exitTime,
+                "LATENCIE_TIME": latenceTime
+            }
+
+            return jsonify(jsonReturn)
+    # try:
         # loggerError.error("---------------------------------------- Inicio {}".format(list(toBalanceData)))
         # genera los balaneacdores vacios
         workersCant = len(state["nodes"])
@@ -666,7 +685,7 @@ def balanceZ():
         balancerTime = endBalamncer - arrivalTime
         # ------------------------------------
 
-        loggerError.error("---------------------------------------- Balanced {}".format(balanceData))
+        loggerError.error("---------------------------------------- Balanced {}".format(balancerTime))
         # Realizamos una copia el json de enrtada
         jsonSend = message
         # actualizamos las fuentes para cada trabajador
@@ -680,7 +699,7 @@ def balanceZ():
         del jsonSend["PIPELINE"][0]
         # array de hilos
         threads = list()
-        # loggerError.error("---------------------------------------- Get Paramaters")
+        loggerError.error("---------------------------------------- Get Paramaters")
         sourcesActual = message["SOURCES"]
         sumReadTime=0
         for worker in range(workersCant):
@@ -688,7 +707,7 @@ def balanceZ():
             procesList = list()
             # leemos los archivos
             cont = 0
-            # loggerError.error("---------------------------------------- {}".format(workersNodes[worker].getID()))
+            
             for src in range(len(sources)):
                 # Leemos el archivo a Distribuir
                 sourceName = sourcesActual[src]
@@ -697,10 +716,14 @@ def balanceZ():
                 # read time
                 initReadTime = time.time()
                 # ------------------------------------
-                if (nodeManager.getID()=="-"):
-                    df_p = pd.read_csv('.{}/{}'.format(sourcePath,sourcesActual[src]))
-                else:
-                    df_p = pd.read_csv('.{}/{}/{}'.format(sourcePath,nodeManager.getID(),sourcesActual[src]))
+                loggerError.error("---------------------------------------- jj {}".format(len(dfs)))
+                df_p = dfs[src]
+                loggerError.error("---------------------------------------- jj {}".format(len(sources)))
+                # logger.info("------------------------------ {}".format(df_p.shape[0]))
+                # if (nodeManager.getID()=="-"):
+                #     df_p = pd.read_csv('.{}/{}'.format(sourcePath,sourcesActual[src]), low_memory=False)
+                # else:
+                #     df_p = pd.read_csv('.{}/{}/{}'.format(sourcePath,nodeManager.getID(),sourcesActual[src]), low_memory=False)
                 # loggerError.error("---------------------------------------- {} {}".format(sourceName, df_p.shape[0]))
                 # ------------------------------------
                 # end read time
@@ -712,11 +735,15 @@ def balanceZ():
                 # ------------------------------------
                 #  Recorremos los valores que les toca al nodo
                 auxList = list()
-                
+                initBalanceSum = 0
                 for zValue in balanceData[worker]:
                     # Solo seleccionamos las filas que correspondan a su balanceo
+                    initBalancer = time.time()
                     loggerError.error("---------------------------------------- {} {}".format(varaibleSource, zValue))
-                    dfRows = df_p[df_p[varaibleSource]==zValue]
+                    # dfRows = df_p[df_p[varaibleSource]==zValue]
+                    dfRows = df_p.get_group(zValue)
+                    # dfRows = df_p.loc[zValue]
+                    
                     # suma = suma + dfRows.shape[0]
                     # app.logger.info(rows_df.shape)
                     # app.logger.info(balanceos_send[x])
@@ -733,30 +760,38 @@ def balanceZ():
                     directoryCSV = ".{}/{}/{}".format(sourcePath, state["nodeId"], nameFileNew)
                     # loggerError.error("---------------------------------------- Get Rows {} {}".format(directoryCSV, dfRows.shape[0]))
                     dfRows.to_csv(directoryCSV,index = False)
-
+                    endBalancer = time.time()
+                    sumTimes = endBalancer - initBalancer
+                    initBalanceSum = initBalanceSum + sumTimes
+                loggerInfo.info("---------------------------------------- BalancerS {}".format(initBalanceSum))
                 procesList.append(auxList)
                 # loggerError.error("---------------------------------------------------- {}".format(df_p.shape[0]))
             # ------------------------------------
             initComunication = time.time()
             # ------------------------------------
+            # loggerError.error("---------------------------------------- 1-{}".format(workersNodes[worker].getID()))
             # Actualizamos el arreglo de fuentes a enviar
             jsonSend["SOURCES"] = sourcesNewList
-            del message["Z"][0]
+            # del message["Z"][0]
             #  URL destino
             url = workersNodes[worker].getURL(mode=modeToSend,endPoint=endPoint)
+            # loggerError.error("---------------------------------------- 2-{}".format(workersNodes[worker].getID()))
             workerID = workersNodes[worker].getID()
-            loggerError.error("-------------------------------- {}".format(workerID))
+            # loggerError.error("-------------------------------- {}".format(workerID))
             # tiempo de salida
             exitTime = time.time()
             jsonSend['EXIT_TIME'] = exitTime
+            # loggerError.error("---------------------------------------- 3-{}".format(workersNodes[worker].getID()))
             # enviamos
             t = threading.Thread(target=sendData, args=(url,jsonSend,numberEvent,procesList,workerID))
             threads.append(t)
             t.start()
+            # loggerError.error("---------------------------------------- 4-{}".format(workersNodes[worker].getID()))
             # ------------------------------------
             endCmunication = time.time()
             comunicationTime = endCmunication-initComunication
             sumComunicationTime = sumComunicationTime + comunicationTime
+            # loggerError.error("---------------------------------------- 4-{}".format(workersNodes[worker].getID()))
             # ------------------------------------
         
         # LOGGER ------------------------------------------------

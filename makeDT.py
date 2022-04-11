@@ -1,5 +1,6 @@
 import pandas as pd
 import time
+from dask import dataframe as dd
 
 def conteo(nameSource,conteoData,conteoVariables,grupoBY,group_by):
     arrivalTime = time.time()
@@ -49,31 +50,49 @@ def conteo(nameSource,conteoData,conteoVariables,grupoBY,group_by):
 
 sources = ["def_2000_2019_fin.csv","z_class_2019.csv"]
 
-# lectura
+nameFile = './{}'.format(sources[0])
+# # lectura
+# initRead = time.time()
+# df = pd.read_csv(nameFile)
+# endRead = time.time()
+# readTime = endRead - initRead
+# print("---------------------------- Read Pandas Normal {} {}".format(df.shape,readTime))
+
+# initRead = time.time()
+# df = pd.read_csv(nameFile, chunksize=100000)
+# endRead = time.time()
+# readTime = endRead - initRead
+# print("---------------------------- Read Pandas Chunksize {} {}".format(type(df.get_chunk(0)),readTime))
+
 initRead = time.time()
-df = pd.read_csv('./{}'.format(sources[0]))
+dask_df = dd.read_csv(nameFile)
 endRead = time.time()
 readTime = endRead - initRead
-print("---------------------------- Lectura {}".format(readTime))
+print("---------------------------- Read Dask Normal {} {}".format(type(dask_df),readTime))
+
+
+
+
+
 
 # group by
 initBy = time.time()
-df = df.groupby(['anio_regis'])
+df = dask_df.groupby('anio_regis')
 endBy = time.time()
 groupBy = endBy-initBy
-print("---------------------------- GroupBy {}".format(groupBy))
+print("---------------------------- GroupBy {} {}".format(groupBy, df[df.index].unique()))
 
 # select 2019
 initSelect =time.time()
 df_2019 = df.get_group(2019)
 endSelect = time.time()
 selectTime = endSelect-initSelect
-print("---------------------------- Select {}".format(selectTime))
-df_2019.to_csv("2019_.csv",index=False)
-dF_2019 = pd.read_csv("./2019_.csv")
-end2019 = time.time()
-time2019 =end2019- endSelect
-print("---------------------------- 2019 {}".format(time2019))
-# conteo
-resp = conteo(nameSource="2019", conteoData=dF_2019, conteoVariables=["ent_regis"], grupoBY=["ent_regis"], group_by="count")
-print("---------------------------- Count {}".format(resp))
+print("---------------------------- Select {}".format(type(df_2019)))
+df_2019.to_csv(['prueba.csv'])
+# dF_2019 = pd.read_csv("./2019_.csv")
+# end2019 = time.time()
+# time2019 =end2019- endSelect
+# print("---------------------------- 2019 {}".format(time2019))
+# # conteo
+# resp = conteo(nameSource="2019", conteoData=dF_2019, conteoVariables=["ent_regis"], grupoBY=["ent_regis"], group_by="count")
+# print("---------------------------- Count {}".format(resp))

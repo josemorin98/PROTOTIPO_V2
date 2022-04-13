@@ -31,7 +31,7 @@ def correlationPlot(corr,sourcePath,nameSource,loggerInfo,loggerError, nodeId):
         nameFile = ".{}/{}/{}_CORR.png".format(sourcePath, nodeId, nameSource)
         startTime = time.time()
         f, ax = plt.subplots(figsize=(15, 9))
-        ax = sns.heatmap(corr, annot=True, linewidths=.5, vmin=-1, vmax=1, cbar_kws={'label': 'CORRELATION'})
+        ax = sns.heatmap(corr, linewidths=.5, vmin=-1, vmax=1, cbar_kws={'label': 'CORRELATION'})
         plt.title('CORRELATION \n {}'.format(nameSource))
         plt.savefig(nameFile)
         plt.cla()

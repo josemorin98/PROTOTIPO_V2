@@ -199,14 +199,19 @@ def correlationExec(regressionData, normalize, regressionVariables, nameSource, 
     arrivalTime = time.time()
     try:
         # loggerError.error("------------------------------ FLAG 2.1")
-        data_p = regressionData[regressionVariables]
         if (normalize!=False):
             # normalizamos los datos
             data_p = mtd.normalize(data_p,regressionVariables)
+            
+        data_p = regressionData.dropna().corr()
+        data_p = data_p[regressionVariables]
+        # corrs = result.corr()
+        # corrs = corrs[columns]
+        corr = data_p.drop(regressionVariables, axis=0)
         # genereamos la version de prueba y test
         # loggerError.error('{} - {}'.format(regressionVariables[0],regressionVariables[1]))
         
-        corr = data_p.dropna().corr()
+        # corr = data_p.dropna().corr()
         # loggerError.error("------------------------------ FLAG \n {}".format(corr))
         mtd.correlationPlot(corr,sourcePath=sourcePath,nameSource='{}'.format(nameSource),loggerInfo=loggerInfo,
                     loggerError=loggerError, nodeId=nodeID)

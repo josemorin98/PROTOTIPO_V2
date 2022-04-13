@@ -52,7 +52,7 @@ headers = {'PRIVATE-TOKEN': '<your_access_token>', 'Content-Type':'application/j
 
 
 data_file = {
-    "SOURCES":["TasaD_preV3.csv"],
+    "SOURCES":["merge.csv"],
     "START":"2000-01-01 00:00:00",
     "END":"2019-12-31 00:00:00",
     "ESPATIAL":[["nombre entidad"]],
@@ -82,12 +82,12 @@ ip_neg = "192.168.1.77"
 ip_home = "192.168.0.16"
 ip_gama = "148.247.202.73"
 
-url = "http://{}:4999/test".format(ip_gama) # Negocio
+url = "http://{}:4999/test".format(ip_cinves) # Negocio
 
 print(url)
 
-for x in range(5):
+for x in range(1):
     req = requests.get(url, headers=headers)
     datos = req.json()
     print("{} - {} - {}".format(x,url,datos))
-    time.sleep(60*13)
+    time.sleep(5)

@@ -4,12 +4,12 @@ services:
     image: jmorin98/test
     hostname: test
     environment:
-      NODE_ID: test
+      NODE_ID: lb_generic_esp_1
       LOGS_PATH: /logs
       NODE_PORT: 5000
     
     volumes:
-      - /home/jmorin/test/logs:/app/data/logs
+      - /home/jmorin/logs:/app/data/logs
     networks:
       - proto_net
     ports:
@@ -33,18 +33,18 @@ services:
     #   context: ./lb_generic
     #   dockerfile: ./Dockerfile
     volumes:
-      - /home/jmorin/test/:/app/data/
-      - /home/jmorin/test/logs:/app/data/logs
+      - /test/prototipoTest/:/app/data/
+      - /test/prototipoTest/logs:/app/data/logs
     networks:
       - proto_net
     ports:
       - 5454:5000
 
-  clustering_0:
-    image: jmorin98/clustering
-    hostname: clustering_0
+  lb_generic_tem_0:
+    image: jmorin98/loadbalancer
+    hostname: lb_generic_tem_0
     environment:
-      NODE_ID: conteo_0
+      NODE_ID: lb_generic_tem_0
       IP: '127.0.0.1'
       PUBLIC_PORT: 5001
       DOCKER_PORT: 5000
@@ -58,11 +58,337 @@ services:
       PUBILC_PORT_MANAGER: 5454
       DOCKER_PORT_MANAGER: 5000
     volumes:
-      - /home/jmorin/test/:/app/data/
-      - /home/jmorin/test/logs:/app/data/logs
+      - /test/prototipoTest/:/app/data/
+      - /test/prototipoTest/logs/:/app/data/logs
     networks:
       - proto_net
     ports:
       - 5001:5000
+  
+  lb_generic_tem_1:
+    image: jmorin98/loadbalancer
+    hostname: lb_generic_tem_1
+    environment:
+      NODE_ID: lb_generic_tem_1
+      IP: '127.0.0.1'
+      PUBLIC_PORT: 5002
+      DOCKER_PORT: 5000
+      MODE: DOCKER
+      SEND: 0
+      SOURCE_PATH: /data
+      LOGS_PATH: /logs
+
+      NODE_ID_MANAGER: lb_generic_z_0
+      IP_MANAGER: '127.0.0.1'
+      PUBILC_PORT_MANAGER: 5454
+      DOCKER_PORT_MANAGER: 5000
+    volumes:
+      - /test/prototipoTest/:/app/data/
+      - /test/prototipoTest/logs/:/app/data/logs
+    networks:
+      - proto_net
+    ports:
+      - 5002:5000
+  
+  lb_generic_tem_2:
+    image: jmorin98/loadbalancer
+    hostname: lb_generic_tem_2
+    environment:
+      NODE_ID: lb_generic_tem_2
+      IP: '127.0.0.1'
+      PUBLIC_PORT: 5003
+      DOCKER_PORT: 5000
+      MODE: DOCKER
+      SEND: 0
+      SOURCE_PATH: /data
+      LOGS_PATH: /logs
+
+      NODE_ID_MANAGER: lb_generic_z_0
+      IP_MANAGER: '127.0.0.1'
+      PUBILC_PORT_MANAGER: 5454
+      DOCKER_PORT_MANAGER: 5000
+    volumes:
+      - /test/prototipoTest/:/app/data/
+      - /test/prototipoTest/logs/:/app/data/logs
+    networks:
+      - proto_net
+    ports:
+      - 5003:5000
+  
+  lb_generic_tem_3:
+    image: jmorin98/loadbalancer
+    hostname: lb_generic_tem_3
+    environment:
+      NODE_ID: lb_generic_tem_3
+      IP: '127.0.0.1'
+      PUBLIC_PORT: 5004
+      DOCKER_PORT: 5000
+      MODE: DOCKER
+      SEND: 0
+      SOURCE_PATH: /data
+      LOGS_PATH: /logs
+
+      NODE_ID_MANAGER: lb_generic_z_0
+      IP_MANAGER: '127.0.0.1'
+      PUBILC_PORT_MANAGER: 5454
+      DOCKER_PORT_MANAGER: 5000
+    volumes:
+      - /test/prototipoTest/:/app/data/
+      - /test/prototipoTest/logs/:/app/data/logs
+    networks:
+      - proto_net
+    ports:
+      - 5004:5000
+
+  correlation_0:
+    image: jmorin98/correlation
+    hostname: correlation_0
+    environment:
+      NODE_ID: correlation_0
+      IP: '127.0.0.1'
+      PUBLIC_PORT: 5002
+      DOCKER_PORT: 5000
+      MODE: DOCKER
+      SEND: 0
+      SOURCE_PATH: /data
+      LOGS_PATH: /logs
+
+      NODE_ID_MANAGER: lb_generic_tem_0
+      IP_MANAGER: '127.0.0.1'
+      PUBILC_PORT_MANAGER: 5001
+      DOCKER_PORT_MANAGER: 5000
+    volumes:
+      - /test/prototipoTest/:/app/data/
+      - /test/prototipoTest/logs/:/app/data/logs
+    networks:
+      - proto_net
+    ports:
+      - 5005:5000
+  
+  correlation_4:
+    image: jmorin98/correlation
+    hostname: correlation_4
+    environment:
+      NODE_ID: correlation_4
+      IP: '127.0.0.1'
+      PUBLIC_PORT: 5009
+      DOCKER_PORT: 5000
+      MODE: DOCKER
+      SEND: 0
+      SOURCE_PATH: /data
+      LOGS_PATH: /logs
+
+      NODE_ID_MANAGER: lb_generic_tem_0
+      IP_MANAGER: '127.0.0.1'
+      PUBILC_PORT_MANAGER: 5001
+      DOCKER_PORT_MANAGER: 5000
+    volumes:
+      - /test/prototipoTest/:/app/data/
+      - /test/prototipoTest/logs/:/app/data/logs
+    networks:
+      - proto_net
+    ports:
+      - 5009:5000
+  
+  correlation_7:
+    image: jmorin98/correlation
+    hostname: correlation_7
+    environment:
+      NODE_ID: correlation_7
+      IP: '127.0.0.1'
+      PUBLIC_PORT: 5011
+      DOCKER_PORT: 5000
+      MODE: DOCKER
+      SEND: 0
+      SOURCE_PATH: /data
+      LOGS_PATH: /logs
+
+      NODE_ID_MANAGER: lb_generic_tem_0
+      IP_MANAGER: '127.0.0.1'
+      PUBILC_PORT_MANAGER: 5001
+      DOCKER_PORT_MANAGER: 5000
+    volumes:
+      - /test/prototipoTest/:/app/data/
+      - /test/prototipoTest/logs/:/app/data/logs
+    networks:
+      - proto_net
+    ports:
+      - 5011:5000
+  
+  correlation_9:
+    image: jmorin98/correlation
+    hostname: correlation_9
+    environment:
+      NODE_ID: correlation_9
+      IP: '127.0.0.1'
+      PUBLIC_PORT: 5013
+      DOCKER_PORT: 5000
+      MODE: DOCKER
+      SEND: 0
+      SOURCE_PATH: /data
+      LOGS_PATH: /logs
+
+      NODE_ID_MANAGER: lb_generic_tem_0
+      IP_MANAGER: '127.0.0.1'
+      PUBILC_PORT_MANAGER: 5001
+      DOCKER_PORT_MANAGER: 5000
+    volumes:
+      - /test/prototipoTest/:/app/data/
+      - /test/prototipoTest/logs/:/app/data/logs
+    networks:
+      - proto_net
+    ports:
+      - 5013:5000
+  
+  correlation_1:
+    image: jmorin98/correlation
+    hostname: correlation_1
+    environment:
+      NODE_ID: correlation_1
+      IP: '127.0.0.1'
+      PUBLIC_PORT: 5006
+      DOCKER_PORT: 5000
+      MODE: DOCKER
+      SEND: 0
+      SOURCE_PATH: /data
+      LOGS_PATH: /logs
+
+      NODE_ID_MANAGER: lb_generic_tem_1
+      IP_MANAGER: '127.0.0.1'
+      PUBILC_PORT_MANAGER: 5002
+      DOCKER_PORT_MANAGER: 5000
+    volumes:
+      - /test/prototipoTest/:/app/data/
+      - /test/prototipoTest/logs/:/app/data/logs
+    networks:
+      - proto_net
+    ports:
+      - 5006:5000
+  
+  correlation_5:
+    image: jmorin98/correlation
+    hostname: correlation_5
+    environment:
+      NODE_ID: correlation_5
+      IP: '127.0.0.1'
+      PUBLIC_PORT: 5010
+      DOCKER_PORT: 5000
+      MODE: DOCKER
+      SEND: 0
+      SOURCE_PATH: /data
+      LOGS_PATH: /logs
+
+      NODE_ID_MANAGER: lb_generic_tem_1
+      IP_MANAGER: '127.0.0.1'
+      PUBILC_PORT_MANAGER: 5002
+      DOCKER_PORT_MANAGER: 5000
+    volumes:
+      - /test/prototipoTest/:/app/data/
+      - /test/prototipoTest/logs/:/app/data/logs
+    networks:
+      - proto_net
+    ports:
+      - 5010:5000
+  
+  correlation_8:
+    image: jmorin98/correlation
+    hostname: correlation_8
+    environment:
+      NODE_ID: correlation_8
+      IP: '127.0.0.1'
+      PUBLIC_PORT: 5012
+      DOCKER_PORT: 5000
+      MODE: DOCKER
+      SEND: 0
+      SOURCE_PATH: /data
+      LOGS_PATH: /logs
+
+      NODE_ID_MANAGER: lb_generic_tem_1
+      IP_MANAGER: '127.0.0.1'
+      PUBILC_PORT_MANAGER: 5002
+      DOCKER_PORT_MANAGER: 5000
+    volumes:
+      - /test/prototipoTest/:/app/data/
+      - /test/prototipoTest/logs/:/app/data/logs
+    networks:
+      - proto_net
+    ports:
+      - 5012:5000
+  
+  correlation_10:
+    image: jmorin98/correlation
+    hostname: correlation_10
+    environment:
+      NODE_ID: correlation_10
+      IP: '127.0.0.1'
+      PUBLIC_PORT: 5014
+      DOCKER_PORT: 5000
+      MODE: DOCKER
+      SEND: 0
+      SOURCE_PATH: /data
+      LOGS_PATH: /logs
+
+      NODE_ID_MANAGER: lb_generic_tem_1
+      IP_MANAGER: '127.0.0.1'
+      PUBILC_PORT_MANAGER: 5002
+      DOCKER_PORT_MANAGER: 5000
+    volumes:
+      - /test/prototipoTest/:/app/data/
+      - /test/prototipoTest/logs/:/app/data/logs
+    networks:
+      - proto_net
+    ports:
+      - 5014:5000
+  
+  correlation_2:
+    image: jmorin98/correlation
+    hostname: correlation_2
+    environment:
+      NODE_ID: correlation_2
+      IP: '127.0.0.1'
+      PUBLIC_PORT: 5007
+      DOCKER_PORT: 5000
+      MODE: DOCKER
+      SEND: 0
+      SOURCE_PATH: /data
+      LOGS_PATH: /logs
+
+      NODE_ID_MANAGER: lb_generic_tem_2
+      IP_MANAGER: '127.0.0.1'
+      PUBILC_PORT_MANAGER: 5003
+      DOCKER_PORT_MANAGER: 5000
+    volumes:
+      - /test/prototipoTest/:/app/data/
+      - /test/prototipoTest/logs/:/app/data/logs
+    networks:
+      - proto_net
+    ports:
+      - 5007:5000
+
+  correlation_3:
+    image: jmorin98/correlation
+    hostname: correlation_3
+    environment:
+      NODE_ID: correlation_3
+      IP: '127.0.0.1'
+      PUBLIC_PORT: 5008
+      DOCKER_PORT: 5000
+      MODE: DOCKER
+      SEND: 0
+      SOURCE_PATH: /data
+      LOGS_PATH: /logs
+
+      NODE_ID_MANAGER: lb_generic_tem_3
+      IP_MANAGER: '127.0.0.1'
+      PUBILC_PORT_MANAGER: 5004
+      DOCKER_PORT_MANAGER: 5000
+    volumes:
+      - /test/prototipoTest/:/app/data/
+      - /test/prototipoTest/logs/:/app/data/logs
+    networks:
+      - proto_net
+    ports:
+      - 5008:5000
+
 networks:
   proto_net:

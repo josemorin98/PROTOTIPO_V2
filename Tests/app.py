@@ -1,3 +1,4 @@
+from doctest import NORMALIZE_WHITESPACE
 from glob import glob
 import logging
 import time
@@ -67,25 +68,36 @@ def test():
     global tableState
     exitTime = time.time()
     data_file = {
-        "SOURCES":["TasaD_preV3.csv"],
+        "SOURCES":["merge.csv"],
         "START":"2000-01-01 00:00:00",
         "END":"2019-12-31 00:00:00",
-        "ESPATIAL":[["nombre entidad"]],
+        "ESPATIAL":[[""]],
         "TYPE_ESPATIAL":"STATE",
         "TEMPORAL":["anio_ocur"], # col,range,cant
         "TYPE_TEMPORAL":["anio",1],
-        "Z":[["anio_regis"]],
+        "Z":[["sexo"],["anio"]],
         "BALANCE":["CLASS","CLASS"],
         "PARAMS":[
             {
-                "K":[3,4,5],
-                "TYPES":['KMEANS'],
-                "VARS":[['count','Poblacion total',
-                'Poblacion masculina','Poblacion femenina',
-                'Total de viviendas habitadas','CVE_ENT','CVE_MUN','TasaD','causasuic_l']],
-                "SILHOUETTE":1
+                "VARS":[['suicAhogamiento', 'suicAhorcamiento', 
+                         'suicArma_fuego', 'suicEnvenenamiento', 
+                         'suicOtro', 'suicderhabNE', 'suicSinDerhab', 
+                         'suicDerehab', 'suic10_14', 'suic15_19', 
+                         'suic20_24', 'suic25_29', 'suic30_34', 'suic35_39', 
+                         'suic40_44', 'suic45_49', 'suic50_54', 'suic55_59', 
+                         'suic5_9', 'suic60_64', 'suicNE_NA', 'pob_00_04', 
+                         'pob_05_09', 'pob_10_14', 'pob_15_19', 'pob_20_24', 
+                         'pob_25_29', 'pob_30_34', 'pob_35_39', 'pob_40_44', 
+                         'pob_45_49', 'pob_50_54', 'pob_55_59', 'pob_60_64', 
+                         'pob_65_mm', 'cve_ent', 'cve_mun', 'tasa_suic5_9', 
+                         'tasa_suic10_14', 'tasa_suic15_19', 'tasa_suic20_24', 
+                         'tasa_suic25_29', 'tasa_suic30_34', 'tasa_suic35_39', 
+                         'tasa_suic40_44', 'tasa_suic45_49', 'tasa_suic50_54', 
+                         'tasa_suic55_59', 'tasa_suic60_64', 'suic65_mas', 
+                         'tasa_suic65_mas', 'tot_pob', 'total_suic', 'tasa_suic']],
+                "NORMALIZE":0
             }],
-        "PIPELINE":["analytics/clustering"],
+        "PIPELINE":["/balance/function","/analytics/correlation"],
         "EXIT_TIME":exitTime
     }
 

@@ -20,12 +20,12 @@ cd ..
 # docker build -t jmorin98/regression:latest .
 # docker push jmorin98/regression:latest
 # cd ..
-# cd correlation
-# docker build -t jmorin98/correlation:latest .
-# docker push jmorin98/correlation:latest
-# cd ..
-cd conteo
-docker build -t jmorin98/conteo:latest .
-docker push jmorin98/conteo:latest
+cd correlation
+docker build -t jmorin98/correlation:latest .
+docker push jmorin98/correlation:latest
 cd ..
-# docker-compose up --build
+# cd conteo
+# docker build -t jmorin98/conteo:latest .
+# docker push jmorin98/conteo:latest
+# cd ..
+docker-compose up --build

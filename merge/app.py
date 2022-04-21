@@ -5,11 +5,14 @@ import seaborn as sns
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
-def corr(corr,nameSource):
+def corr(corr,nameSource,xlabel,ylabel):
     f, ax = plt.subplots(figsize=(15, 9))
-    ax = sns.heatmap(corr, linewidths=.5, vmin=0, vmax=1, cbar_kws={'label': 'CORRELATION'})
-    plt.title('CORRELATION \n {}'.format(nameSource))
-    plt.savefig("./suic_new/{}".format(nameSource))
+    ax = sns.heatmap(corr, linewidths=.5, vmin=-1, vmax=1, cbar_kws={'label': 'CORRELATION'}, fmt=".2f",)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.set_title('CORRELACION \n {}'.format(nameSource))
+    plt.tight_layout()
+    plt.savefig("./suic_new/{}".format(nameSource),format="eps",dpi=400)
     plt.cla()
     plt.close()
 
@@ -41,7 +44,8 @@ corrs = corrs[columns]
 corrs = corrs.drop(columns, axis=0)
 
 # print(len(corrs.index),len(corrs.columns))  
-corr(corrs,"prueba")
+corrs.to_csv("mergeCorr.csv")
+corr(corrs,"Prueba","Variables Suicidios", "Variables Macroeconomicas")
 # for column in columns:
 #     countL = countL + 1
 #     print("{} - {}".format(countL, column))
